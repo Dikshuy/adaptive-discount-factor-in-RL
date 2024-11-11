@@ -7,38 +7,38 @@ import matplotlib as mpl
 import sys
 
 MAPS = {
-    "4x4": ["0000", "0101", "0001", "1000"],
+    "4x4": ["0000", "0201", "0001", "1000"],  # Added lava (2) to the default map
     "8x8": [
         "00000000",
         "00000000",
         "00010000",
-        "00000100",
+        "00002100",
         "00010000",
-        "01100010",
+        "01100210",
         "01001010",
         "00010000",
     ],
 }
 
+
 class SimpleGridEnv(Env):
     """
-    Simple Grid Environment
+    Simple Grid Environment with Lava
 
-    The environment is a grid with obstacles (walls) and agents. The agents can move in one of the four cardinal directions. If they try to move over an obstacle or out of the grid bounds, they stay in place. Each agent has a unique color and a goal state of the same color. The environment is episodic, i.e. the episode ends when the agents reaches its goal.
+    The environment is a grid with obstacles (walls), lava, and agents. The agents can move in 
+    one of the four cardinal directions. If they try to move over an obstacle or out of the grid 
+    bounds, they stay in place. Stepping on lava tiles gives a -5 reward. Each agent has a unique 
+    color and a goal state of the same color.
 
-    To initialise the grid, the user must decide where to put the walls on the grid. This can be done by either selecting an existing map or by passing a custom map. To load an existing map, the name of the map must be passed to the `obstacle_map` argument. Available pre-existing map names are "4x4" and "8x8". Conversely, if to load custom map, the user must provide a map correctly formatted. The map must be passed as a list of strings, where each string denotes a row of the grid and it is composed by a sequence of 0s and 1s, where 0 denotes a free cell and 1 denotes a wall cell. An example of a 4x4 map is the following:
-    ["0000", 
-     "0101", 
-     "0001", 
-     "1000"]
-
-    Assume the environment is a grid of size (nrow, ncol). A state s of the environment is an elemente of gym.spaces.Discete(nrow*ncol), i.e. an integer between 0 and nrow * ncol - 1. Assume nrow=ncol=5 and s=10, to compute the (x,y) coordinates of s on the grid the following formula are used: x = s // ncol  and y = s % ncol.
-     
-    The user can also decide the starting and goal positions of the agent. This can be done by through the `options` dictionary in the `reset` method. The user can specify the starting and goal positions by adding the key-value pairs(`starts_xy`, v1) and `goals_xy`, v2), where v1 and v2 are both of type int (s) or tuple (x,y) and represent the agent starting and goal positions respectively. 
+    Grid cell types:
+    0: Free cell
+    1: Wall/Obstacle
+    2: Lava (dangerous tile with -5 reward)
     """
     metadata = {"render_modes": ["human", "rgb_array", "ansi"], 'render_fps': 8}
     FREE: int = 0
     OBSTACLE: int = 1
+    LAVA: int = 2  # New tile type for lava
     MOVES: dict[int,tuple] = {
         0: (-1, 0), #UP
         1: (1, 0),  #DOWN
@@ -55,19 +55,15 @@ class SimpleGridEnv(Env):
 
         Parameters
         ----------
-        agent_color: str
-            Color of the agent. The available colors are: red, green, blue, purple, yellow, grey and black. Note that the goal cell will have the same color.
         obstacle_map: str | list[str]
-            Map to be loaded. If a string is passed, the map is loaded from a set of pre-existing maps. The names of the available pre-existing maps are "4x4" and "8x8". If a list of strings is passed, the map provided by the user is parsed and loaded. The map must be a list of strings, where each string denotes a row of the grid and is a sequence of 0s and 1s, where 0 denotes a free cell and 1 denotes a wall cell. 
-            An example of a 4x4 map is the following:
-            ["0000",
-             "0101", 
-             "0001",
-             "1000"]
+            Map to be loaded. If a string is passed, the map is loaded from pre-existing maps.
+            The map format now supports three digits:
+            0: Free cell
+            1: Wall
+            2: Lava
         """
-
-        # Env confinguration
-        self.obstacles = self.parse_obstacle_map(obstacle_map) #walls
+        # Env configuration
+        self.obstacles = self.parse_obstacle_map(obstacle_map)
         self.nrow, self.ncol = self.obstacles.shape
 
         self.action_space = spaces.Discrete(len(self.MOVES))
@@ -75,7 +71,6 @@ class SimpleGridEnv(Env):
 
         # Rendering configuration
         self.fig = None
-
         self.render_mode = render_mode
         self.fps = self.metadata['render_fps']
 
@@ -231,12 +226,6 @@ class SimpleGridEnv(Env):
         Check if the agent is on its own goal.
         """
         return self.agent_xy == self.goal_xy
-
-    def is_free(self, row: int, col: int) -> bool:
-        """
-        Check if a cell is free.
-        """
-        return self.obstacles[row, col] == self.FREE
     
     def is_in_bounds(self, row: int, col: int) -> bool:
         """
@@ -251,11 +240,21 @@ class SimpleGridEnv(Env):
         if not self.is_in_bounds(x, y):
             return -1.0
         elif not self.is_free(x, y):
-            return -1.0
+            return -1.0  # Wall
         elif (x, y) == self.goal_xy:
             return 1.0
+        elif (self.obstacles[x, y] == self.LAVA):  # Check for lava
+            return -5.0
         else:
             return 0.0
+
+    def is_free(self, row: int, col: int) -> bool:
+        """
+        Check if a cell is free (not a wall).
+        Note: Lava tiles are considered "free" for movement purposes
+        but have a negative reward.
+        """
+        return self.obstacles[row, col] != self.OBSTACLE
 
     def get_obs(self) -> int:
         return self.to_s(*self.agent_xy)
@@ -328,14 +327,24 @@ class SimpleGridEnv(Env):
         """
         Render the initial frame.
 
-        @NOTE: 0: free cell (white), 1: obstacle (black), 2: start (red), 3: goal (green)
+        @NOTE: 
+        0: free cell (white)
+        1: obstacle (black)
+        2: lava (red)
+        3: start position (blue)
+        4: goal (green)
         """
         data = self.obstacles.copy()
-        data[self.start_xy] = 2
-        data[self.goal_xy] = 3
+        
+        # Temporarily store the lava positions
+        self.lava_positions = np.where(data == self.LAVA)
+        
+        # Set start and goal positions (using higher numbers to distinguish from lava)
+        data[self.start_xy] = 3
+        data[self.goal_xy] = 4
 
-        colors = ['white', 'black', 'red', 'green']
-        bounds=[i-0.1 for i in [0, 1, 2, 3, 4]]
+        colors = ['white', 'black', 'red', 'blue', 'green']
+        bounds = [i-0.1 for i in range(6)]  # Adjusted for 5 different values
 
         # create discrete colormap
         cmap = mpl.colors.ListedColormap(colors)
@@ -346,9 +355,8 @@ class SimpleGridEnv(Env):
         self.fig = fig
         self.ax = ax
 
-        #ax.grid(axis='both', color='#D3D3D3', linewidth=2) 
         ax.grid(axis='both', color='k', linewidth=1.3) 
-        ax.set_xticks(np.arange(0, data.shape[1], 1))  # correct grid sizes
+        ax.set_xticks(np.arange(0, data.shape[1], 1))
         ax.set_yticks(np.arange(0, data.shape[0], 1))
         ax.tick_params(
             bottom=False, 
