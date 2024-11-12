@@ -54,7 +54,7 @@ def eps_greedy_action(Q, s, eps):
     return action
 
 
-def expected_return(env, Q, gamma, episodes=5):
+def expected_return(env, Q, gamma, episodes = 10):
     G = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e, options = options)
@@ -98,8 +98,6 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
 
             Q[s,a] += alpha * td_err
 
-            # tde.append(abs(td_err))
-
             if done:
                 print("finished episode:", episodes)
                 episodes += 1 
@@ -110,7 +108,6 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
             s = s_next
             a = a_next
 
-    # return Q, tde, exp_ret
     return Q, exp_ret
 
 
@@ -141,35 +138,33 @@ gamma = 0.99
 alpha = 0.1
 eps = 1.0
 max_steps = 100000
-num_episodes = 5
+num_episodes = 25
 
 init_values = [0.0]
+gamma_values = [0.1, 0.25, 0.5, 0.75, 0.99]
 seed = 1
 
-results_tde = np.zeros((
-    len(init_values),
-    max_steps,
-))
 results_exp_ret = np.zeros((
     len(init_values),
     num_episodes,
 ))
 
-# fig, axs = plt.subplots(1, 2, figsize=(18, 6))
-# plt.ion()
+fig, axs = plt.subplots(1, 2, figsize=(18, 6))
+plt.ion()
 
 env = gym.make(
     'SimpleGrid-v0', 
-    obstacle_map=obstacle_map, 
-    render_mode='rgb_array'
+    obstacle_map=obstacle_map,
 )
-results = []
+
+results = np.zeros(num_episodes)
+episodes_arr = np.array([i for i in range(num_episodes)])
+
 for i, init_value in enumerate(init_values):
     Q = np.zeros((n_states, n_actions)) + init_value
     Q, exp_ret = Q_learning(env, Q, gamma, eps, alpha, max_steps, seed)
-    # results_tde[i] = [0]*max_steps
-    # results_exp_ret[i] = exp_ret
-    results.append(exp_ret)
+
+    results_exp_ret[i] = exp_ret
 
     # label = f"$Q_0$: {init_value}"
     # axs[0].set_title("TD Error", fontsize=12)
@@ -193,10 +188,11 @@ for i, init_value in enumerate(init_values):
     # )
     # axs[1].legend()
     # axs[1].set_ylim([-25, 1])
-plt.plot(num_episodes, results)
-plt.tight_layout() 
-# plt.draw()
-# plt.pause(0.001)
+    
+    plt.plot(episodes_arr, exp_ret)
+    plt.tight_layout() 
+    plt.draw()
+    plt.pause(0.001)
 
 plt.savefig("q.png", dpi=300)
 plt.ioff()
