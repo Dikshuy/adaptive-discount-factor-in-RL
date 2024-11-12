@@ -6,11 +6,17 @@ import matplotlib.pyplot as plt
 np.set_printoptions(precision=3)
 
 obstacle_map = [
-    "00000",
-    "00000",
-    "00000",
-    "00000",
-    "00000",
+    "00000100000",
+    "02222100022",
+    "00000120002",
+    "02220002020",
+    "00000100000",
+    "11011111101",
+    "02000100200",
+    "00220102020",
+    "00000100000",
+    "00220002002",
+    "00000100002",
 ]
 
 length = len(obstacle_map)
@@ -74,6 +80,7 @@ def expected_return(env, Q, gamma, episodes = 10):
 def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
     exp_ret = []
     steps_per_episode = []
+    G = np.zeros(num_episodes)
     eps_decay = 4 * eps / max_steps
     alpha_decay = alpha / max_steps
     tot_steps = 0
@@ -85,26 +92,32 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
         done = False
         episode_steps = 0
 
-        while not done and tot_steps < max_steps:
+        while not done:# and tot_steps < max_steps:
             tot_steps += 1
             episode_steps += 1
             a = eps_greedy_action(Q, s, eps)
             s_next, r, terminated, truncated, _ = env.step(a)
 
             done = terminated or truncated
+            G[episodes] += gamma ** episode_steps * r
             eps = max(eps - eps_decay, 0.01)
             alpha = max(alpha - alpha_decay, 0.001)
 
             best_actions = np.where(Q[s_next] == np.max(Q[s_next]))[0]
             a_next = np.random.choice(best_actions)
-            td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
+            
+            if adpative_gamma:
+                gamma = min(gamma + 14 * gamma / max_steps, 0.999)
+                td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
+            else:
+                td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
 
             Q[s,a] += alpha * td_err
 
             if done:
-                episodes += 1
-                exp_ret.append(expected_return(env, Q, gamma))
+                exp_ret.append(G[episodes])
                 steps_per_episode.append(episode_steps)
+                episodes += 1
 
             s = s_next
             a = a_next
@@ -139,11 +152,14 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 alpha = 0.1
 eps = 1.0
 max_steps = 10000
-num_episodes = 150
+num_episodes = 500
 
 init_values = [0.0]
 gamma_values = [0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
 seeds = np.arange(30)
+
+adpative_gamma = True
+gamma_init = 0.1
 
 results_exp_ret = np.zeros((
     len(gamma_values),
@@ -179,7 +195,10 @@ for i, gamma in enumerate(gamma_values):
         for seed in seeds:
             np.random.seed(seed)
             Q = np.zeros((n_states, n_actions)) + init_value
-            Q, exp_ret, steps = Q_learning(env, Q, gamma, eps, alpha, max_steps, int(seed))
+            if adpative_gamma:
+                Q, exp_ret, steps = Q_learning(env, Q, gamma_init, eps, alpha, max_steps, int(seed))
+            else:
+                Q, exp_ret, steps = Q_learning(env, Q, gamma, eps, alpha, max_steps, int(seed))
 
             results_exp_ret[i, j, seed] = exp_ret
             results_steps[i, j, seed] = steps
@@ -196,7 +215,7 @@ for i, gamma in enumerate(gamma_values):
         axs[0].set_ylabel("Average Return", fontsize=10)
         axs[0].set_title("Q-Learning Performance Across Different Gamma Values")
         axs[0].legend()
-        axs[0].set_ylim([-5,1.4])
+        # axs[0].set_ylim([-5,1.4])
 
         error_shade_plot(
             axs[1],
@@ -208,12 +227,12 @@ for i, gamma in enumerate(gamma_values):
         axs[1].set_ylabel("Steps to Goal", fontsize=10)
         axs[1].set_title("Steps per Episode Across Different Gamma Values")
         axs[1].legend()
-        axs[1].set_ylim([0, 200]) 
+        # axs[1].set_ylim([0, 200]) 
 
         plt.tight_layout()
         plt.draw()
         plt.pause(0.001)
 
-plt.savefig("q.png", dpi=300)
+plt.savefig("adaptive_q.png", dpi=300)
 plt.ioff()
 plt.show()
