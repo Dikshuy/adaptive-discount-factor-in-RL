@@ -72,7 +72,6 @@ def expected_return(env, Q, gamma, episodes = 10):
 
 def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
     exp_ret = []
-    tde = []
     eps_decay = eps / max_steps
     alpha_decay = alpha / max_steps
     tot_steps = 0
@@ -80,7 +79,6 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
 
     while episodes < num_episodes:
         s, info = env.reset(seed = _seed, options = options)
-        print("begin")
         a = eps_greedy_action(Q, s, eps)
         done = False
         while not done and tot_steps < max_steps:
@@ -99,11 +97,8 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
             Q[s,a] += alpha * td_err
 
             if done:
-                print("finished episode:", episodes)
                 episodes += 1 
                 exp_ret.append(expected_return(env, Q, gamma))
-                print(expected_return(env, Q, gamma))
-                print()
 
             s = s_next
             a = a_next
@@ -124,75 +119,72 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     y = np.nanmean(data, 0)
     x = np.arange(len(y))
     x = [stepsize * step for step in range(len(y))]
-    if smoothing_window > 1:
-        y = smooth(y, smoothing_window)
+    # if smoothing_window > 1:
+    #     y = smooth(y, smoothing_window)
+
     (line,) = ax.plot(x, y, **kwargs)
     error = np.nanstd(data, axis=0)
-    if smoothing_window > 1:
-        error = smooth(error, smoothing_window)
+    # if smoothing_window > 1:
+    #     error = smooth(error, smoothing_window)
     error = 1.96 * error / np.sqrt(data.shape[0])
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
 
-gamma = 0.99
 alpha = 0.1
 eps = 1.0
 max_steps = 100000
 num_episodes = 25
 
 init_values = [0.0]
-gamma_values = [0.1, 0.25, 0.5, 0.75, 0.99]
-seed = 1
+gamma_values = [0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
+seeds = np.arange(30)
 
 results_exp_ret = np.zeros((
+    len(gamma_values),
     len(init_values),
+    len(seeds),
     num_episodes,
 ))
 
-fig, axs = plt.subplots(1, 2, figsize=(18, 6))
+fig, ax = plt.subplots()
 plt.ion()
+plt.show()
+
+ax.set_prop_cycle(color=["red", "green", "blue", "black", "orange", "cyan", "brown", "gray", "pink"])
+ax.set_xlabel("Episodes", fontsize=10)
+ax.grid(True, which="both", linestyle="--", linewidth=0.5)
+ax.minorticks_on()
 
 env = gym.make(
     'SimpleGrid-v0', 
     obstacle_map=obstacle_map,
 )
 
-results = np.zeros(num_episodes)
-episodes_arr = np.array([i for i in range(num_episodes)])
+for i, gamma in enumerate(gamma_values):
+    for j, init_value in enumerate(init_values):
+        for seed in seeds:
+            np.random.seed(seed)
+            Q = np.zeros((n_states, n_actions)) + init_value
+            Q, exp_ret = Q_learning(env, Q, gamma, eps, alpha, max_steps, int(seed))
 
-for i, init_value in enumerate(init_values):
-    Q = np.zeros((n_states, n_actions)) + init_value
-    Q, exp_ret = Q_learning(env, Q, gamma, eps, alpha, max_steps, seed)
+            results_exp_ret[i, j, seed] = np.array(exp_ret)
 
-    results_exp_ret[i] = exp_ret
+            print(gamma, init_value, seed)
 
-    # label = f"$Q_0$: {init_value}"
-    # axs[0].set_title("TD Error", fontsize=12)
-    # error_shade_plot(
-    #     axs[0],
-    #     results_tde[i],
-    #     stepsize=1,
-    #     smoothing_window=20,
-    #     label=label,
-    # )
-    # axs[0].legend()
-    # axs[0].set_ylim([0, 5])
-   
-    # axs[1].set_title("Expected Return", fontsize=12)
-    # error_shade_plot(
-    #     axs[1],
-    #     results_exp_ret[i],
-    #     stepsize=1,
-    #     smoothing_window=20,
-    #     label=label,
-    # )
-    # axs[1].legend()
-    # axs[1].set_ylim([-25, 1])
-    
-    plt.plot(episodes_arr, exp_ret)
-    plt.tight_layout() 
-    plt.draw()
-    plt.pause(0.001)
+        error_shade_plot(
+            ax,
+            results_exp_ret[i, j],
+            stepsize=1,
+            smoothing_window=20,
+            label=f'γ={gamma:.2f}'
+        )
+        ax.set_ylabel("Average Return", fontsize=10)
+        ax.set_title("Q-Learning Performance Across Different Gamma Values")
+        ax.legend()
+        ax.set_ylim([-5,1.4])
+        plt.tight_layout()
+        plt.draw()
+        plt.pause(0.001)
 
 plt.savefig("q.png", dpi=300)
 plt.ioff()
