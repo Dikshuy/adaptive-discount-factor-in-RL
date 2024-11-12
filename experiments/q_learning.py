@@ -7,10 +7,10 @@ np.set_printoptions(precision=3)
 
 obstacle_map = [
     "00000",
+    "02220",
     "00000",
-    "00000",
-    "00000",
-    "00000",
+    "02200",
+    "00002",
 ]
 
 length = len(obstacle_map)
