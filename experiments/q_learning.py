@@ -7,10 +7,10 @@ np.set_printoptions(precision=3)
 
 obstacle_map = [
     "00000",
-    "02220",
     "00000",
-    "02200",
-    "00002",
+    "00000",
+    "00000",
+    "00000",
 ]
 
 length = len(obstacle_map)
@@ -57,7 +57,8 @@ def eps_greedy_action(Q, s, eps):
 def expected_return(env, Q, gamma, episodes = 10):
     G = np.zeros(episodes)
     for e in range(episodes):
-        s, _ = env.reset(seed=e, options = options)
+        np.random.seed(e)
+        s, _ = env.reset(seed = int(seed), options = options)
         done = False
         t = 0
         while not done:
@@ -138,11 +139,11 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 alpha = 0.1
 eps = 1.0
 max_steps = 10000
-num_episodes = 250
+num_episodes = 150
 
 init_values = [0.0]
 gamma_values = [0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
-seeds = np.arange(50)
+seeds = np.arange(30)
 
 results_exp_ret = np.zeros((
     len(gamma_values),
