@@ -107,7 +107,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
             a_next = np.random.choice(best_actions)
             
             if adpative_gamma:
-                gamma = min(gamma + 14 * gamma / max_steps, 0.999)
+                gamma = min(gamma + 0.1 * episodes * gamma / max_steps, 0.999)
                 td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
             else:
                 td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
@@ -159,7 +159,8 @@ gamma_values = [0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
 seeds = np.arange(30)
 
 adpative_gamma = True
-gamma_init = 0.1
+if adpative_gamma:
+    gamma_values = [0.1]
 
 results_exp_ret = np.zeros((
     len(gamma_values),
@@ -195,11 +196,8 @@ for i, gamma in enumerate(gamma_values):
         for seed in seeds:
             np.random.seed(seed)
             Q = np.zeros((n_states, n_actions)) + init_value
-            if adpative_gamma:
-                Q, exp_ret, steps = Q_learning(env, Q, gamma_init, eps, alpha, max_steps, int(seed))
-            else:
-                Q, exp_ret, steps = Q_learning(env, Q, gamma, eps, alpha, max_steps, int(seed))
-
+            Q, exp_ret, steps = Q_learning(env, Q, gamma, eps, alpha, max_steps, int(seed))
+            
             results_exp_ret[i, j, seed] = exp_ret
             results_steps[i, j, seed] = steps
 
