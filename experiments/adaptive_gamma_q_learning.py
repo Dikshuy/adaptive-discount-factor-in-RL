@@ -6,17 +6,11 @@ import matplotlib.pyplot as plt
 np.set_printoptions(precision=3)
 
 obstacle_map = [
-    "00000100000",
-    "02222100022",
-    "00000120002",
-    "02220002020",
-    "00000100000",
-    "11011111101",
-    "02000100200",
-    "00220102020",
-    "00000100000",
-    "00220002002",
-    "00000100002",
+    "00000",
+    "00000",
+    "00000",
+    "00000",
+    "00000",
 ]
 
 length = len(obstacle_map)
@@ -81,7 +75,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
     exp_ret = []
     steps_per_episode = []
     G = np.zeros(num_episodes)
-    eps_decay = 4 * eps / max_steps
+    eps_decay = eps / max_steps
     alpha_decay = alpha / max_steps
     tot_steps = 0
     episodes = 0
@@ -114,7 +108,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
                 steps_per_episode.append(episode_steps)
                 episodes += 1
                 if adpative_gamma:
-                    gamma = min(gamma + episodes * gamma / max_steps, 0.999)
+                    gamma = min(gamma + episodes * gamma / max_steps, 0.99)
 
             s = s_next
             a = a_next
@@ -151,7 +145,7 @@ eps = 1.0
 max_steps = 10000
 num_episodes = 500
 
-init_values = [0.0]
+init_values = [0.0, 5.0, 10.0, 15.0]
 gamma_values = [0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
 seeds = np.arange(30)
 
@@ -198,14 +192,14 @@ for i, gamma in enumerate(gamma_values):
             results_exp_ret[i, j, seed] = exp_ret
             results_steps[i, j, seed] = steps
 
-            print(gamma, seed)
+            print(gamma, init_value, seed)
 
         error_shade_plot(
             axs[0],
             results_exp_ret[i, j],
             stepsize=1,
             smoothing_window=20,
-            label=f'γ={gamma:.2f}'
+            label=f'γ={gamma:.2f}, $Q_o$={init_value:.2f}'
         )
         axs[0].set_ylabel("Average Return", fontsize=10)
         axs[0].set_title("Q-Learning Performance Across Different Gamma Values")
@@ -217,7 +211,7 @@ for i, gamma in enumerate(gamma_values):
             results_steps[i, j],
             stepsize=1,
             smoothing_window=20,
-            label=f'γ={gamma:.2f}'
+            label=f'γ={gamma:.2f},  $Q_o$={init_value:.2f}'
         )
         axs[1].set_ylabel("Steps to Goal", fontsize=10)
         axs[1].set_title("Steps per Episode Across Different Gamma Values")
