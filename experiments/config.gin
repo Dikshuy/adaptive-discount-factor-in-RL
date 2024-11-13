@@ -1,0 +1,33 @@
+define_env.MAP = [
+    "00000",
+    "00200",
+    "00000",
+    "02220",
+    "00000",
+    "11011",
+    "02000",
+    "00020",
+    "00000",
+    "00200",
+    "00000",
+    ]
+
+define_env.GAMMA = 0.99
+
+smoothen.WINDOW_SIZE = 10
+
+qlearning.LR = 0.5
+qlearning.Q_INIT = -1
+qlearning.TOTAL_STEPS = 100000
+
+qlearning.EPS_INIT = 0.99
+qlearning.EPS_MIN = 0.0
+qlearning.EPS_DECAY_UNTILL = 0.9 # linearly decay epsilon untill what fraction of TOTAL_STEPS
+qlearning.EVAL_EVERY = 100 # How many steps once to evaluate
+
+
+eval.EVAL_EPI = 1 # * How many epsiodes to evaluate (1 IF BOTH ENVIRONMENT AND POLICY IS DETERMINISTIC)
+
+fibonacci_seeds.TOTAL_SEEDS = 2
+
+main.GAMMAS = [0.9, 0.5]
