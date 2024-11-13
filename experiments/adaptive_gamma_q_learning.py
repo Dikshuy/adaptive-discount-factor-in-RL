@@ -105,12 +105,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
 
             best_actions = np.where(Q[s_next] == np.max(Q[s_next]))[0]
             a_next = np.random.choice(best_actions)
-            
-            if adpative_gamma:
-                gamma = min(gamma + 0.1 * episodes * gamma / max_steps, 0.999)
-                td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
-            else:
-                td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
+            td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
 
             Q[s,a] += alpha * td_err
 
@@ -118,6 +113,8 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
                 exp_ret.append(G[episodes])
                 steps_per_episode.append(episode_steps)
                 episodes += 1
+                if adpative_gamma:
+                    gamma = min(gamma + episodes * gamma / max_steps, 0.999)
 
             s = s_next
             a = a_next
@@ -201,7 +198,7 @@ for i, gamma in enumerate(gamma_values):
             results_exp_ret[i, j, seed] = exp_ret
             results_steps[i, j, seed] = steps
 
-            print(gamma, init_value, seed)
+            print(gamma, seed)
 
         error_shade_plot(
             axs[0],
