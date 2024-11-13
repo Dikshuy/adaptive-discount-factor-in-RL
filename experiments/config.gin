@@ -1,5 +1,9 @@
 # EASY / MODERATE / DIFFICULT + SPARSE / MEDIUM / DENSE
-define_env.NAME = 'MODERATE_SPARSE'
+
+Q_INIT = 0
+NAME = "MODERATE_SPARSE"
+
+define_env.NAME = %NAME
 define_env.GAMMA = 0.99
 
 smoothen.WINDOW_SIZE = 10
@@ -7,7 +11,7 @@ fibonacci_seeds.TOTAL_SEEDS = 5
 
 
 qlearning.LR = 0.5
-qlearning.Q_INIT = 0
+qlearning.Q_INIT = %Q_INIT
 qlearning.TOTAL_STEPS = 50000
 
 qlearning.EPS_INIT = 0.99
@@ -20,3 +24,5 @@ eval.EVAL_EPI = 1 # * How many epsiodes to evaluate (1 IF BOTH ENVIRONMENT AND P
 
 
 main.GAMMAS = [0.99, 0.75, 0.5, 0.1] # * IMPORTANT - SHOULD BE A LIST
+main.Q_INIT = %Q_INIT
+main.NAME = %NAME

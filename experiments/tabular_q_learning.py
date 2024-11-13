@@ -163,7 +163,7 @@ def qlearning(env, eval_env, options, seed, gamma, LR, Q_INIT, TOTAL_STEPS, EPS_
 
 
 @gin.configurable
-def main(GAMMAS):
+def main(GAMMAS, Q_INIT, NAME):
 
     current_time = datetime.now()
     formatted_time = current_time.strftime('%b%d_%H_%M_%S')
@@ -211,6 +211,8 @@ def main(GAMMAS):
     
     ax1.legend()
     ax2.legend()
+    
+    fig.text(0.5, 0.01, f"Q_INIT : {Q_INIT} - MAP : {NAME}", ha = 'center', fontsize = 10)
     
     fig.savefig(main_dir + 'plots.png')
     
