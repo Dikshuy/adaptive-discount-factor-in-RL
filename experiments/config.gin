@@ -1,33 +1,22 @@
-define_env.MAP = [
-    "00000",
-    "00200",
-    "00000",
-    "02220",
-    "00000",
-    "11011",
-    "02000",
-    "00020",
-    "00000",
-    "00200",
-    "00000",
-    ]
-
+# EASY / MODERATE / DIFFICULT + SPARSE / MEDIUM / DENSE
+define_env.NAME = 'MODERATE_SPARSE'
 define_env.GAMMA = 0.99
 
 smoothen.WINDOW_SIZE = 10
+fibonacci_seeds.TOTAL_SEEDS = 5
+
 
 qlearning.LR = 0.5
-qlearning.Q_INIT = -1
-qlearning.TOTAL_STEPS = 100000
+qlearning.Q_INIT = 0
+qlearning.TOTAL_STEPS = 50000
 
 qlearning.EPS_INIT = 0.99
 qlearning.EPS_MIN = 0.0
 qlearning.EPS_DECAY_UNTILL = 0.9 # linearly decay epsilon untill what fraction of TOTAL_STEPS
-qlearning.EVAL_EVERY = 100 # How many steps once to evaluate
+qlearning.EVAL_EVERY = 250 # How many steps once to evaluate
 
 
 eval.EVAL_EPI = 1 # * How many epsiodes to evaluate (1 IF BOTH ENVIRONMENT AND POLICY IS DETERMINISTIC)
 
-fibonacci_seeds.TOTAL_SEEDS = 2
 
-main.GAMMAS = [0.9, 0.5]
+main.GAMMAS = [0.99, 0.75, 0.5, 0.1] # * IMPORTANT - SHOULD BE A LIST

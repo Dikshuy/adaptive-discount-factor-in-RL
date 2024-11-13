@@ -4,8 +4,14 @@ import gymnasium as gym
 import numpy as np
 from matplotlib import pyplot as plt
 
+from maps import load_map
 import gin
 import wandb
+import os
+from datetime import datetime
+import matplotlib.colors as mcolors
+
+from tqdm import tqdm
 
 
 @gin.configurable
@@ -28,9 +34,25 @@ def smoothen(returns, WINDOW_SIZE):
     
     return smoothed_returns
 
-@gin.configurable
-def define_env(MAP, GAMMA):
+def plot_with_confidence(item, ax, color, label):
+    
+    mean_item = np.mean(item, axis=0)
+    
+    lower_bound = np.percentile(item, 5, axis=0)
+    upper_bound = np.percentile(item, 95, axis=0)
+    
+    episodes = np.arange(item.shape[1])
 
+    ax.plot(episodes, mean_item, color = color, label = label)
+    ax.fill_between(episodes, lower_bound, upper_bound, color = color, alpha = 0.3)
+    
+    return ax
+    
+@gin.configurable
+def define_env(NAME, GAMMA):
+    
+    MAP = load_map(NAME)
+    
     length = len(MAP)
     width = len(MAP[0])
 
@@ -77,7 +99,7 @@ def eval(env, options, Q, EVAL_EPI):
         eval_returns.append(e_ret)
         eval_lens.append(e_len)
         
-    return np.array(eval_returns), np.array(eval_lens)
+    return np.mean(eval_returns, -1), np.mean(eval_lens, -1)
         
 
 @gin.configurable
@@ -143,13 +165,23 @@ def qlearning(env, eval_env, options, seed, gamma, LR, Q_INIT, TOTAL_STEPS, EPS_
 @gin.configurable
 def main(GAMMAS):
 
-    wandb.init(project = "Mysterious-Gamma")
+    current_time = datetime.now()
+    formatted_time = current_time.strftime('%b%d_%H_%M_%S')
+
+    main_dir = f"MG_Results/" + formatted_time.upper() + '/'
+    os.makedirs(main_dir, exist_ok = True)
     
     set_of_seeds = fibonacci_seeds()
     env, options, env_gamma = define_env()
     eval_env, _, _ = define_env()
     
-    for gamma in GAMMAS:
+    fig, axes = plt.subplots(nrows = 1, ncols = 2, figsize = (12, 8))
+    ax1, ax2 = axes.flatten()
+    
+    colormap = plt.cm.viridis  # You can choose any colormap
+    colors = [colormap(i) for i in np.linspace(0, 1, len(GAMMAS))]
+    
+    for idx, gamma in enumerate(GAMMAS):
         
         set_of_eval_rets, set_of_eval_lens = [], []
         set_of_train_rets, set_of_train_lens = [], []
@@ -162,8 +194,25 @@ def main(GAMMAS):
             set_of_eval_lens.append(eval_data[1])
             
             set_of_train_rets.append(train_data[0])
-            set_of_train_lens.append(train_data[1])        
-
-
+            set_of_train_lens.append(train_data[1])   
+            
+    
+        set_of_eval_rets = np.array(set_of_eval_rets)
+        set_of_eval_lens = np.array(set_of_eval_lens)
+        # set_of_train_rets = np.array(set_of_train_rets)
+        # set_of_train_lens = np.array(set_of_train_lens)
+        
+        ax1 = plot_with_confidence(set_of_eval_rets, ax1, colors[idx], str(gamma))
+        ax2 = plot_with_confidence(set_of_eval_lens, ax2, colors[idx], str(gamma))
+        
+        
+    ax1.set_title('Eval Episodic Return')
+    ax2.set_title('Eval Episodic Lengths')
+    
+    ax1.legend()
+    ax2.legend()
+    
+    fig.savefig(main_dir + 'plots.png')
+    
 gin.parse_config_file('config.gin')
 main()
