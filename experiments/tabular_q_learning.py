@@ -34,7 +34,7 @@ def smoothen(returns, WINDOW_SIZE):
     
     return smoothed_returns
 
-def plot_with_confidence(item, ax, color, label):
+def plot_with_confidence(item, ax, color, label, marker):
     
     mean_item = np.mean(item, axis=0)
     
@@ -43,8 +43,8 @@ def plot_with_confidence(item, ax, color, label):
     
     episodes = np.arange(item.shape[1])
 
-    ax.plot(episodes, mean_item, color = color, label = label)
-    ax.fill_between(episodes, lower_bound, upper_bound, color = color, alpha = 0.3)
+    ax.plot(episodes, mean_item, color = color, label = label, zorder = 2) #, marker = marker)
+    ax.fill_between(episodes, lower_bound, upper_bound, color = color, alpha = 0.1, zorder = 1)
     
     return ax
     
@@ -180,6 +180,7 @@ def main(GAMMAS, Q_INIT, NAME):
     
     colormap = plt.cm.viridis  # You can choose any colormap
     colors = [colormap(i) for i in np.linspace(0, 1, len(GAMMAS))]
+    markers = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', 'd', '|', '_']
     
     for idx, gamma in enumerate(GAMMAS):
         
@@ -201,9 +202,9 @@ def main(GAMMAS, Q_INIT, NAME):
         set_of_eval_lens = np.array(set_of_eval_lens)
         # set_of_train_rets = np.array(set_of_train_rets)
         # set_of_train_lens = np.array(set_of_train_lens)
-        
-        ax1 = plot_with_confidence(set_of_eval_rets, ax1, colors[idx], str(gamma))
-        ax2 = plot_with_confidence(set_of_eval_lens, ax2, colors[idx], str(gamma))
+                
+        ax1 = plot_with_confidence(set_of_eval_rets, ax1, colors[idx], str(gamma), markers[idx])
+        ax2 = plot_with_confidence(set_of_eval_lens, ax2, colors[idx], str(gamma), markers[idx])
         
         
     ax1.set_title('Eval Episodic Return')
@@ -214,7 +215,7 @@ def main(GAMMAS, Q_INIT, NAME):
     
     fig.text(0.5, 0.01, f"Q_INIT : {Q_INIT} - MAP : {NAME}", ha = 'center', fontsize = 10)
     
-    fig.savefig(main_dir + 'plots.png')
+    fig.savefig(main_dir + 'Comparision.png')
     
 gin.parse_config_file('config.gin')
 main()

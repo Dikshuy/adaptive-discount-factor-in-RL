@@ -112,21 +112,30 @@ def load_map(name):
     
     if name == 'EASY_SPARSE':
         return EASY_SPARSE
+    
     elif name == 'EASY_MEDIUM':
         return EASY_MEDIUM
+    
     elif name == 'EASY_DENSE':
         return EASY_DENSE
+    
     elif name == 'MODERATE_SPARSE':
         return MODERATE_SPARSE
+    
     elif name == 'MODERATE_MEDIUM':
         return MODERATE_MEDIUM
+    
     elif name == 'MODERATE_DENSE':
         return MODERATE_DENSE
+    
     elif name == 'DIFFICULT_SPARSE':
         return DIFFICULT_SPARSE
+    
     elif name == 'DIFFICULT_MEDIUM':
         return DIFFICULT_MEDIUM
+    
     elif name == 'DIFFICULT_DENSE':
         return DIFFICULT_DENSE
+    
     else:
         NotImplementedError("Check environment name!")
