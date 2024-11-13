@@ -139,8 +139,10 @@ class SimpleGridEnv(Env):
 
         # if self.render_mode == "human":
         self.render()
+        
+        truncated = self.n_iter > 100
 
-        return self.get_obs(), self.reward, self.done, False, self.get_info()
+        return self.get_obs(), self.reward, self.done, truncated, self.get_info()
     
     def parse_obstacle_map(self, obstacle_map) -> np.ndarray:
         """
@@ -238,13 +240,13 @@ class SimpleGridEnv(Env):
         Get the reward of a given cell.
         """
         if not self.is_in_bounds(x, y):
-            return -1.0
+            return 0.0
         elif not self.is_free(x, y):
-            return -1.0  # Wall
-        elif (x, y) == self.goal_xy:
+            return 0.0  # Wall
+        if (x, y) == self.goal_xy:
             return 1.0
         elif (self.obstacles[x, y] == self.LAVA):  # Check for lava
-            return -5.0
+            return -1.0
         else:
             return 0.0
 
