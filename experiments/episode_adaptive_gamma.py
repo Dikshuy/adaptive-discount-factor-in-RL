@@ -145,7 +145,7 @@ eps = 1.0
 max_steps = 10000
 num_episodes = 500
 
-init_values = [0.0, 5.0, 10.0, 15.0]
+init_values = [0.0, 5.0]
 gamma_values = [0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
 seeds = np.arange(30)
 
@@ -222,6 +222,6 @@ for i, gamma in enumerate(gamma_values):
         plt.draw()
         plt.pause(0.001)
 
-plt.savefig("adaptive_q.png", dpi=300)
+plt.savefig("epidose_adaptive_q.png", dpi=300)
 plt.ioff()
 plt.show()
