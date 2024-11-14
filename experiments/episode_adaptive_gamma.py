@@ -97,7 +97,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
             eps = max(eps - eps_decay, 0.01)
             alpha = max(alpha - alpha_decay, 0.001)
 
-            gamma = min(gamma + episode_steps * gamma / max_steps, 0.99)
+            gamma = min(gamma + episode_steps * gamma / tot_steps, 0.99)
 
             best_actions = np.where(Q[s_next] == np.max(Q[s_next]))[0]
             a_next = np.random.choice(best_actions)
