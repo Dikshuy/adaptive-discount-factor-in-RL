@@ -148,7 +148,7 @@ max_steps = 50000
 
 init_values = [0.0, 5.0]#, 10.0]
 gamma_values = [0.99]#[0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
-seeds = np.arange(50)
+seeds = np.arange(30)
 
 adaptive_gamma = True
 if adaptive_gamma:
