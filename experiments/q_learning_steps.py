@@ -125,13 +125,13 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     y = np.nanmean(data, 0)
     x = np.arange(len(y))
     x = [stepsize * step for step in range(len(y))]
-    # if smoothing_window > 1:
-    #     y = smooth(y, smoothing_window)
+    if smoothing_window > 1:
+        y = smooth(y, smoothing_window)
 
     (line,) = ax.plot(x, y, **kwargs)
     error = np.nanstd(data, axis=0)
-    # if smoothing_window > 1:
-    #     error = smooth(error, smoothing_window)
+    if smoothing_window > 1:
+        error = smooth(error, smoothing_window)
     error = 1.96 * error / np.sqrt(data.shape[0])
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
@@ -141,8 +141,8 @@ eps = 1.0
 max_steps = 50000
 
 init_values = [0.0, 5.0]#, 10.0]
-gamma_values = [0.99]#[0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
-seeds = np.arange(50)
+gamma_values = [0.1, 0.99]#0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
+seeds = np.arange(30)
 
 results_exp_ret = np.zeros((
     len(gamma_values),
@@ -188,7 +188,7 @@ for i, gamma in enumerate(gamma_values):
         error_shade_plot(
             axs[0],
             results_exp_ret[i, j],
-            stepsize=100,
+            stepsize=1,
             smoothing_window=20,
             label=f'γ={gamma:.2f}, $Q_o$={init_value:.2f}'
         )
@@ -200,7 +200,7 @@ for i, gamma in enumerate(gamma_values):
         error_shade_plot(
             axs[1],
             results_steps[i, j],
-            stepsize=100,
+            stepsize=1,
             smoothing_window=20,
             label=f'γ={gamma:.2f}, $Q_o$={init_value:.2f}'
         )
