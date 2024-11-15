@@ -80,6 +80,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
     eps_decay = eps / max_steps
     alpha_decay = alpha / max_steps
     tot_steps = 0
+    episodes = 0
 
     while tot_steps < max_steps:  
         s, _ = env.reset(seed = _seed, options = options)
@@ -105,6 +106,11 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
                 G, episode_steps = expected_return(env, Q, gamma)
                 exp_ret.append(G)
                 steps_per_episode.append(episode_steps)
+
+            if done:
+                episodes += 1
+                if adaptive_gamma:
+                    gamma = min(gamma + episodes * gamma / max_steps, 0.99)
 
             s = s_next
             a = a_next
@@ -143,6 +149,10 @@ max_steps = 50000
 init_values = [0.0, 5.0]#, 10.0]
 gamma_values = [0.99]#[0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
 seeds = np.arange(50)
+
+adaptive_gamma = True
+if adaptive_gamma:
+    gamma_values = [0.1]
 
 results_exp_ret = np.zeros((
     len(gamma_values),
@@ -213,6 +223,6 @@ for i, gamma in enumerate(gamma_values):
         plt.draw()
         plt.pause(0.001)
 
-plt.savefig("steps_q.png", dpi=300)
+plt.savefig("adaptive_steps_q.png", dpi=300)
 plt.ioff()
 plt.show()
