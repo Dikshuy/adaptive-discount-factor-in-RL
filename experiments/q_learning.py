@@ -26,24 +26,17 @@ env = gym.make(
     obstacle_map=obstacle_map,
 )
 
+env_eval = gym.make(
+    'SimpleGrid-v0', 
+    obstacle_map=obstacle_map,
+)
+
 obs, _ = env.reset(seed=1, options = options)
 rew = env.unwrapped.reward
 done = env.unwrapped.done
 
-n_states = (length + 1) * (width + 1)
-n_actions = 4
-
-R = np.zeros((n_states, n_actions))
-P = np.zeros((n_states, n_actions, n_states))
-T = np.zeros((n_states, n_actions))
-
-
-def eps_greedy_probs(Q, eps):
-    pi = np.ones((n_states, n_actions)) * (eps / n_actions)
-    best_actions = np.argmax(Q, axis=1)
-    for s in range(n_states):
-        pi[s, best_actions[s]] += (1 - eps)
-    return pi
+n_states = env.observation_space.n
+n_actions = env.action_space.n
 
 
 def eps_greedy_action(Q, s, eps):
@@ -54,8 +47,9 @@ def eps_greedy_action(Q, s, eps):
     return action
 
 
-def expected_return(env, Q, gamma, episodes = 10):
+def expected_return(env, Q, gamma, episodes=1):
     G = np.zeros(episodes)
+    episode_steps = np.zeros(episodes)
     for e in range(episodes):
         np.random.seed(e)
         s, _ = env.reset(seed = int(seed), options = options)
@@ -65,52 +59,44 @@ def expected_return(env, Q, gamma, episodes = 10):
             a = eps_greedy_action(Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += gamma**t * r
+            G[e] += r
             s = s_next
             t += 1
-    return G.mean()
+            if done:
+                episode_steps[e] = t
+    return G.mean(), episode_steps.mean()
 
 
 def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
     exp_ret = []
     steps_per_episode = []
-    G = np.zeros(num_episodes)
     eps_decay = eps / max_steps
     alpha_decay = alpha / max_steps
     tot_steps = 0
-    episodes = 0
 
-    while episodes < num_episodes:  
+    while tot_steps < max_steps:  
         s, _ = env.reset(seed = _seed, options = options)
-        a = eps_greedy_action(Q, s, eps)
         done = False
-        episode_steps = 0
 
-        while not done:# and tot_steps < max_steps:
+        while not done and tot_steps < max_steps:
             tot_steps += 1
-            episode_steps += 1
             a = eps_greedy_action(Q, s, eps)
             s_next, r, terminated, truncated, _ = env.step(a)
 
             done = terminated or truncated
-            G[episodes] += gamma ** episode_steps * r
             eps = max(eps - eps_decay, 0.01)
             alpha = max(alpha - alpha_decay, 0.001)
 
-            best_actions = np.where(Q[s_next] == np.max(Q[s_next]))[0]
-            a_next = np.random.choice(best_actions)
             td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
 
             Q[s,a] += alpha * td_err
 
-            if done:
-                # exp_ret.append(expected_return(env, Q, gamma))
-                exp_ret.append(G[episodes])
+            if tot_steps % eval_steps == 0:
+                G, episode_steps = expected_return(env_eval, Q, gamma)
+                exp_ret.append(G)
                 steps_per_episode.append(episode_steps)
-                episodes += 1
 
             s = s_next
-            a = a_next
 
     return Q, exp_ret, steps_per_episode
 
@@ -128,38 +114,38 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     y = np.nanmean(data, 0)
     x = np.arange(len(y))
     x = [stepsize * step for step in range(len(y))]
-    # if smoothing_window > 1:
-    #     y = smooth(y, smoothing_window)
+    if smoothing_window > 1:
+        y = smooth(y, smoothing_window)
 
     (line,) = ax.plot(x, y, **kwargs)
     error = np.nanstd(data, axis=0)
-    # if smoothing_window > 1:
-    #     error = smooth(error, smoothing_window)
+    if smoothing_window > 1:
+        error = smooth(error, smoothing_window)
     error = 1.96 * error / np.sqrt(data.shape[0])
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
 
-alpha = 0.1
+alpha = 0.5
 eps = 1.0
-max_steps = 10000
-num_episodes = 500
+max_steps = 75000
+eval_steps = 100
 
-init_values = [0.0, 5.0, 10.0, 15.0]
-gamma_values = [0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
+init_values = [-10.0, 0.0, 10.0]
+gamma_values = [0.1, 0.5, 0.75, 0.9, 0.99]
 seeds = np.arange(30)
 
 results_exp_ret = np.zeros((
     len(gamma_values),
     len(init_values),
     len(seeds),
-    num_episodes,
+    max_steps // eval_steps,
 ))
 
-results_steps = np.zeros((
+results_steps= np.zeros((
     len(gamma_values),
     len(init_values),
     len(seeds),
-    num_episodes,
+    max_steps // eval_steps,
 ))
 
 fig, axs = plt.subplots(1, 2, figsize=(12, 6))
@@ -168,14 +154,10 @@ plt.show()
 
 for ax in axs:
     ax.set_prop_cycle(color=["red", "green", "blue", "black", "orange", "cyan", "brown", "gray", "pink"])
-    ax.set_xlabel("Episodes", fontsize=10)
+    ax.set_xlabel("Steps", fontsize=10)
     ax.grid(True, which="both", linestyle="--", linewidth=0.5)
     ax.minorticks_on()
 
-env = gym.make(
-    'SimpleGrid-v0', 
-    obstacle_map=obstacle_map,
-)
 
 for i, gamma in enumerate(gamma_values):
     for j, init_value in enumerate(init_values):
@@ -217,6 +199,6 @@ for i, gamma in enumerate(gamma_values):
         plt.draw()
         plt.pause(0.001)
 
-plt.savefig("q.png", dpi=300)
+plt.savefig("q_learning.png", dpi=300)
 plt.ioff()
 plt.show()
