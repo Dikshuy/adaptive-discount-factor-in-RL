@@ -54,7 +54,7 @@ def eps_greedy_action(Q, s, eps):
     return action
 
 
-def expected_return(env, Q, gamma, episodes=10):
+def expected_return(env, Q, gamma, episodes=1):
     G = np.zeros(episodes)
     episode_steps = np.zeros(episodes)
     for e in range(episodes):
@@ -66,7 +66,7 @@ def expected_return(env, Q, gamma, episodes=10):
             a = eps_greedy_action(Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += gamma**t * r
+            G[e] += t * r
             s = s_next
             t += 1
             if done:
@@ -136,12 +136,12 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
 
-alpha = 0.1
+alpha = 0.5
 eps = 1.0
-max_steps = 50000
+max_steps = 75000
 
-init_values = [0.0, 5.0]#, 10.0]
-gamma_values = [0.1, 0.99]#0.25, 0.5, 0.75, 0.8, 0.9, 0.99]
+init_values = [0.0, 5.0, 10.0]
+gamma_values = [0.1, .25, 0.5, 0.75, 0.8, 0.9, 0.99]
 seeds = np.arange(30)
 
 results_exp_ret = np.zeros((
