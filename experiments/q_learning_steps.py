@@ -66,7 +66,7 @@ def expected_return(env, Q, gamma, episodes=1):
             a = eps_greedy_action(Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += t * r
+            G[e] += r
             s = s_next
             t += 1
             if done:
@@ -93,7 +93,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
 
             done = terminated or truncated
             eps = max(eps - eps_decay, 0.01)
-            alpha = max(alpha - alpha_decay, 0.001)
+            # alpha = max(alpha - alpha_decay, 0.001)
 
             best_actions = np.where(Q[s_next] == np.max(Q[s_next]))[0]
             a_next = np.random.choice(best_actions)
@@ -101,7 +101,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, _seed):
 
             Q[s,a] += alpha * td_err
 
-            if tot_steps % 100 == 0:
+            if tot_steps % eval_steps == 0:
                 G, episode_steps = expected_return(env, Q, gamma)
                 exp_ret.append(G)
                 steps_per_episode.append(episode_steps)
@@ -139,8 +139,9 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 alpha = 0.5
 eps = 1.0
 max_steps = 75000
+eval_steps = 250
 
-init_values = [0.0, 5.0, 10.0]
+init_values = [0.0]#, 5.0, 10.0]
 gamma_values = [0.1, .25, 0.5, 0.75, 0.8, 0.9, 0.99]
 seeds = np.arange(30)
 
@@ -148,14 +149,14 @@ results_exp_ret = np.zeros((
     len(gamma_values),
     len(init_values),
     len(seeds),
-    max_steps // 100,
+    max_steps // eval_steps,
 ))
 
 results_steps= np.zeros((
     len(gamma_values),
     len(init_values),
     len(seeds),
-    max_steps // 100,
+    max_steps // eval_steps,
 ))
 
 fig, axs = plt.subplots(1, 2, figsize=(12, 6))
