@@ -19,11 +19,10 @@ def expected_return(env, weights, gamma, episodes=100):
         t = 0
         while not done:
             phi = get_phi(s)
-            a = np.dot(phi, weights)
-            a_clip = np.clip(a, env.action_space.low, env.action_space.high)
-            s_next, r, terminated, truncated, _ = env.step(a_clip)
+            a = eps_greedy_action(phi, weights, 0)
+            s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += r
+            G[e] += gamma**t * r
             s = s_next
             t += 1
     return G.mean()
@@ -40,9 +39,8 @@ def collect_data(env, weights, n_episodes, var):
         done = False
         while not done:
             phi = get_phi(s)
-            a = gaussian_action(phi, weights, var)
-            a_clip = np.clip(a, env.action_space.low, env.action_space.high)
-            s_next, r, terminated, truncated, _ = env.step(a_clip)
+            a = softmax_action(phi, weights, var)
+            s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
             data["phi"].append(phi)
             data["a"].append(a)
@@ -51,13 +49,29 @@ def collect_data(env, weights, n_episodes, var):
             s = s_next
     return data
 
-def gaussian_action(phi, weights, sigma: np.array):
-    mu = np.dot(phi, weights)
-    return np.random.normal(mu, sigma**2)
+def eps_greedy_action(phi, weights, eps):
+    if np.random.rand() < eps:
+        return np.random.randint(n_actions)
+    else:
+        Q = np.dot(phi, weights).ravel()
+        best = np.argwhere(Q == Q.max())
+        i = np.random.choice(range(best.shape[0]))
+        return best[i][0]
 
-def dlog_gaussian_probs(phi, weights, sigma, action: np.array):
-    mu = np.dot(phi, weights)
-    return phi * (action - mu) / (sigma**2)
+def softmax_probs(phi, weights, eps):
+    q = np.dot(phi, weights)
+    q_exp = np.exp((q - np.max(q, -1, keepdims=True)) / max(eps, 1e-12))
+    probs = q_exp / q_exp.sum(-1, keepdims=True)
+    return probs
+
+def softmax_action(phi, weights, eps):
+    probs = softmax_probs(phi, weights, eps)
+    return np.random.choice(weights.shape[1], p=probs.ravel())
+
+def dlog_softmax_probs(phi, weights, eps, act):
+    probs = softmax_probs(phi, weights, eps)
+    dlog_pi = phi[:, np.newaxis] * (np.eye(n_actions)[act] - probs)
+    return dlog_pi
 
 def compute_mc_returns(rewards, gamma, dones):
     G = np.zeros_like(rewards)
@@ -70,9 +84,8 @@ def compute_mc_returns(rewards, gamma, dones):
     return G
 
 def reinforce(baseline="none"):
-    weights = np.zeros((phi_dummy.shape[1], action_dim))
-    sigma = 2.0  # for Gaussian
-    eps = 1.0  # softmax temperature, DO NOT DECAY
+    weights = np.zeros((phi_dummy.shape[1], n_actions))
+    eps = 1.0
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
     exp_return = expected_return(env_eval, weights, gamma, episodes_eval)
@@ -80,7 +93,7 @@ def reinforce(baseline="none"):
 
     while tot_steps < max_steps:
         # collect data
-        data = collect_data(env, weights, episodes_per_update, sigma)
+        data = collect_data(env, weights, episodes_per_update, eps)
         phi = np.vstack(data["phi"])
         a = np.vstack(data["a"])
         r = np.vstack(data["r"])
@@ -89,15 +102,14 @@ def reinforce(baseline="none"):
         # compute MC return
         G = compute_mc_returns(r, gamma, done)
 
-        # compute gradient of all samples (with/without baseline)
-        dlog_pi = dlog_gaussian_probs(phi, weights, sigma, a)
+        dlog_pi = np.array([dlog_softmax_probs(phi[t], weights, eps, a[t]) for t in range(len(a))])
 
         if baseline == "none":
             b = 0
         elif baseline == "mean_return":
             b = np.mean(G)
         else:
-            b = np.sum((dlog_pi**2) * G) / np.sum(dlog_pi**2)
+            b = np.sum(np.sum(dlog_pi**2, axis=1) * G) / np.sum(np.sum(dlog_pi**2, axis=1))
 
         # average gradient over all samples
         gradient = np.zeros_like(weights)
@@ -112,7 +124,6 @@ def reinforce(baseline="none"):
         exp_return_history[tot_steps : tot_steps + T] = exp_return
         tot_steps += T
         exp_return = expected_return(env_eval, weights, gamma, episodes_eval)
-        sigma = max(sigma - T / max_steps, 0.1)
 
         pbar.set_description(
             f"G: {exp_return:.3f}"
@@ -144,19 +155,30 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
 
-# UNCOMMENT TO SOLVE THE PENDULUM
 env_id = "CartPole-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
 episodes_eval = 100
-
 state_dim = env.observation_space.shape[0]
-action_dim = env.action_space.n
+n_actions = env.action_space.n
 
 # automatically set centers and sigmas
-n_centers = [7] * state_dim
+n_centers = [15] * state_dim
 state_low = env.observation_space.low
 state_high = env.observation_space.high
+
+'''
+cutting inf to high numbers for RBFs
+discuss and change later if required
+'''
+for i, state in enumerate(state_low):
+    if state == -np.inf:
+        state_low[i] = -500
+
+for i, state in enumerate(state_high):
+    if state == np.inf:
+        state_high[i] = 500
+
 centers = np.array(
     np.meshgrid(*[
         np.linspace(
@@ -175,8 +197,8 @@ phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 gamma = 0.99
 alpha = 0.1
 episodes_per_update = 10
-max_steps = 1000000
-baselines = ["none", "mean_return", "min_variance"]
+max_steps = 200000
+baselines = ["none"]#, "mean_return", "min_variance"]
 n_seeds = 10
 results_exp_ret = np.zeros((
     len(baselines),
@@ -188,6 +210,8 @@ fig, axs = plt.subplots(1, 1)
 axs.set_prop_cycle(color=["red", "green", "blue"])
 axs.set_xlabel("Steps")
 axs.set_ylabel("Expected Return")
+axs.grid(True, which="both", linestyle="--", linewidth=0.5)
+axs.minorticks_on()
 
 for i, baseline in enumerate(baselines):
     for seed in range(n_seeds):
@@ -208,4 +232,5 @@ for i, baseline in enumerate(baselines):
     )
     axs.legend()
 
+plt.savefig("reinforce_cartpole.png", dpi=300)
 plt.show()
