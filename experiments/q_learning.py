@@ -65,7 +65,7 @@ def expected_return(env, Q, gamma, episodes=1):
             a = eps_greedy_action(Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += r
+            G[e] += gamma**t * r
             s = s_next
             t += 1
             if done:
@@ -133,7 +133,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 
 alpha = 0.5
 eps = 1.0
-max_steps = 75000
+max_steps = 100000
 eval_steps = 100
 
 init_values = [-10.0, 0.0, 10.0]
@@ -187,7 +187,7 @@ for i, gamma in enumerate(gamma_values):
         axs[0].set_ylabel("Average Return", fontsize=10)
         axs[0].set_title("Q-Learning Performance Across Different Gamma Values")
         axs[0].legend()
-        # axs[0].set_ylim([-5,1.4])
+        axs[0].set_ylim([-5,1.4])
 
         error_shade_plot(
             axs[1],
