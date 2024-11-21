@@ -7,16 +7,16 @@ np.set_printoptions(precision=3)
 
 obstacle_map = [
     "00000100000",
-    "02222100022",
-    "00000120002",
-    "02220002020",
+    "00000100000",
+    "00000100000",
+    "00000000000",
     "00000100000",
     "11011111101",
-    "02000100200",
-    "00220102020",
     "00000100000",
-    "00220002002",
-    "00000100002",
+    "00000100000",
+    "00000100000",
+    "00000000000",
+    "00000100000",
 ]
 
 length = len(obstacle_map)
@@ -65,7 +65,7 @@ def expected_return(env, Q, gamma, episodes=1):
             a = eps_greedy_action(Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += gamma**t * r
+            G[e] += r
             s = s_next
             t += 1
             if done:
@@ -136,7 +136,7 @@ eps = 1.0
 max_steps = 100000
 eval_steps = 100
 
-init_values = [-10.0, 0.0, 10.0]
+init_values = [10.0]#[-10.0, 0.0, 10.0]
 gamma_values = [0.1, 0.5, 0.75, 0.9, 0.99]
 seeds = np.arange(30)
 
@@ -187,7 +187,7 @@ for i, gamma in enumerate(gamma_values):
         axs[0].set_ylabel("Average Return", fontsize=10)
         axs[0].set_title("Q-Learning Performance Across Different Gamma Values")
         axs[0].legend()
-        axs[0].set_ylim([-5,1.4])
+        axs[0].set_ylim([-50,1.4])
 
         error_shade_plot(
             axs[1],

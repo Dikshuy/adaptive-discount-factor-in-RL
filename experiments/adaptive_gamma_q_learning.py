@@ -65,7 +65,7 @@ def expected_return(env, Q, gamma, episodes=1):
             a = eps_greedy_action(Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += gamma**t * r
+            G[e] += r
             s = s_next
             t += 1
             if done:
