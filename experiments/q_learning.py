@@ -132,7 +132,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 
 alpha = 0.5
 eps = 1.0
-max_steps = 100000
+max_steps = 300000
 eval_steps = 100
 
 init_values = [0.0, 10.0]
@@ -159,7 +159,7 @@ plt.show()
 
 for ax in axs:
     ax.set_prop_cycle(color=["red", "green", "blue", "black", "orange", "cyan", "brown", "gray", "pink"])
-    ax.set_xlabel("Steps", fontsize=10)
+    ax.set_xlabel("Steps X 100", fontsize=10)
     ax.grid(True, which="both", linestyle="--", linewidth=0.5)
     ax.minorticks_on()
 
