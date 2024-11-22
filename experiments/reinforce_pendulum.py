@@ -184,7 +184,7 @@ results_exp_ret = np.zeros((
 ))
 
 fig, axs = plt.subplots(1, 1)
-axs.set_prop_cycle(color=["red", "green", "blue"])
+axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
 axs.set_title("REINFORCE with different discount factor")
 axs.set_xlabel("Steps")
 axs.set_ylabel("Expected Return")
