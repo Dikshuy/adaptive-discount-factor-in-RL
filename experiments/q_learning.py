@@ -57,7 +57,6 @@ def expected_return(env, Q, gamma, episodes=1):
     G = np.zeros(episodes)
     episode_steps = np.zeros(episodes)
     for e in range(episodes):
-        np.random.seed(e)
         s, _ = env.reset(seed = int(seed), options = options)
         done = False
         t = 0
@@ -136,7 +135,7 @@ eps = 1.0
 max_steps = 100000
 eval_steps = 100
 
-init_values = [10.0]#[-10.0, 0.0, 10.0]
+init_values = [0.0, 10.0]
 gamma_values = [0.1, 0.5, 0.75, 0.9, 0.99]
 seeds = np.arange(30)
 
@@ -168,7 +167,6 @@ for ax in axs:
 for i, gamma in enumerate(gamma_values):
     for j, init_value in enumerate(init_values):
         for seed in seeds:
-            np.random.seed(seed)
             Q = np.zeros((n_states, n_actions)) + init_value
             Q, exp_ret, steps = Q_learning(env, Q, gamma, eps, alpha, max_steps, int(seed))
 
@@ -187,7 +185,7 @@ for i, gamma in enumerate(gamma_values):
         axs[0].set_ylabel("Average Return", fontsize=10)
         axs[0].set_title("Q-Learning Performance Across Different Gamma Values")
         axs[0].legend()
-        axs[0].set_ylim([-50,1.4])
+        axs[0].set_ylim([-10,1.4])
 
         error_shade_plot(
             axs[1],
