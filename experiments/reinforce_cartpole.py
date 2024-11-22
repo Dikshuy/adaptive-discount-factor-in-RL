@@ -83,8 +83,8 @@ def compute_mc_returns(rewards, gamma, dones):
         G[t] = g
     return G
 
-def reinforce(q_init, baseline="none"):
-    weights = np.zeros((phi_dummy.shape[1], n_actions)) + q_init
+def reinforce(gamma, baseline="none"):
+    weights = np.zeros((phi_dummy.shape[1], n_actions))
     eps = 1.0
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
@@ -194,38 +194,38 @@ get_phi = lambda state : rbf_features(state.reshape(-1, state_dim), centers, sig
 phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
 # hyperparameters
-q_init = [-1, 0, 1]
-gamma = 0.99
+# q_init = [-1, 0, 1]
+# gamma = 0.99
+gamma_values = [0.1, 0.5, 0.8, 0.99]
 alpha = 0.1
 episodes_per_update = 10
 max_steps = 200000
 baselines = ["none"]#, "mean_return", "min_variance"]
 n_seeds = 10
 results_exp_ret = np.zeros((
-    len(q_init),
+    len(gamma_values),
     n_seeds,
     max_steps,
 ))
 
 fig, axs = plt.subplots(1, 1)
 axs.set_prop_cycle(color=["red", "green", "blue"])
-axs.set_title("REINFORCE with different initializations")
+axs.set_title("REINFORCE with different discount factor")
 axs.set_xlabel("Steps")
 axs.set_ylabel("Expected Return")
 axs.grid(True, which="both", linestyle="--", linewidth=0.5)
 axs.minorticks_on()
 
-for i, q in enumerate(q_init):
+for i, gamma in enumerate(gamma_values):
     for seed in range(n_seeds):
-        np.random.seed(seed)
-        exp_return_history = reinforce(q)
+        exp_return_history = reinforce(gamma)
         results_exp_ret[i, seed] = exp_return_history
-        print(q, seed)
+        print(gamma, seed)
 
     plot_args = dict(
         stepsize=1,
         smoothing_window=20,
-        label=q,
+        label=gamma,
     )
     error_shade_plot(
         axs,
