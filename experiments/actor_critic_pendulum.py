@@ -63,9 +63,9 @@ def actor_critic(gamma, seed):
             v_next = np.dot(phi_next, critic_weights)
             
             td_error = r + gamma * v_next * (1 - terminated) - v
-            critic_weights += alpha_critic * td_error.item() * phi.flatten()
+            critic_weights += alpha_critic * td_error * phi.flatten()
             dlog_pi = dlog_gaussian_probs(phi, actor_weights, sigma, a)
-            actor_weights += alpha_actor * td_error.item() * dlog_pi.reshape(-1, 1)
+            actor_weights += alpha_actor * td_error * dlog_pi.reshape(-1, 1)
 
             s = s_next
             T += 1
@@ -73,7 +73,7 @@ def actor_critic(gamma, seed):
 
             exp_return_history[tot_steps-1] = exp_return
 
-            if tot_steps % episodes_eval == 0:
+            if tot_steps % eval_steps == 0:           # confirm whether we need this or not
                 exp_return = expected_return(env_eval, actor_weights, gamma, episodes_eval)
             
             sigma = max(sigma - 1 / max_steps, 0.1)
@@ -112,6 +112,7 @@ env_id = "Pendulum-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
 episodes_eval = 100
+eval_steps = 100
 
 state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
@@ -135,8 +136,6 @@ get_phi = lambda state : rbf_features(state.reshape(-1, state_dim), centers, sig
 phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
 # hyperparameters
-# q_init = [-1, 0, 1]
-# gamma = 0.99
 gamma_values = [0.1, 0.5, 0.8, 0.99]
 alpha_actor = 0.01
 alpha_critic = 0.1
@@ -146,7 +145,7 @@ n_seeds = 10
 results_exp_ret = np.zeros((
     len(gamma_values),
     n_seeds,
-    max_steps,
+    max_steps // eval_steps,
 ))
 
 fig, axs = plt.subplots(1, 1)
