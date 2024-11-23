@@ -11,7 +11,7 @@ def cantor_pairing(x, y):
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
-def expected_return(env, weights, gamma, episodes=100):
+def expected_return(env, weights, gamma, episodes=50):
     G = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e)
@@ -86,6 +86,7 @@ def compute_mc_returns(rewards, gamma, dones):
 def reinforce(gamma, baseline="none"):
     weights = np.zeros((phi_dummy.shape[1], n_actions))
     eps = 1.0
+    eps_decay = eps / max_steps
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
     exp_return = expected_return(env_eval, weights, gamma, episodes_eval)
@@ -124,6 +125,7 @@ def reinforce(gamma, baseline="none"):
         exp_return_history[tot_steps : tot_steps + T] = exp_return
         tot_steps += T
         exp_return = expected_return(env_eval, weights, gamma, episodes_eval)
+        eps = max(eps - eps_decay, 0.01)
 
         pbar.set_description(
             f"G: {exp_return:.3f}"
@@ -189,7 +191,7 @@ centers = np.array(
         for i in range(state_dim)
     ])
 ).reshape(state_dim, -1).T
-sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.75 + 1e-8  # change sigmas for more/less generalization
+sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.99 + 1e-8  # change sigmas for more/less generalization
 get_phi = lambda state : rbf_features(state.reshape(-1, state_dim), centers, sigmas)  # reshape because feature functions expect shape (N, S)
 phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
@@ -197,9 +199,9 @@ phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 # q_init = [-1, 0, 1]
 # gamma = 0.99
 gamma_values = [0.1, 0.5, 0.8, 0.99]
-alpha = 0.1
+alpha = 0.01
 episodes_per_update = 10
-max_steps = 200000
+max_steps = 100000
 baselines = ["none"]#, "mean_return", "min_variance"]
 n_seeds = 10
 results_exp_ret = np.zeros((
@@ -210,7 +212,7 @@ results_exp_ret = np.zeros((
 
 fig, axs = plt.subplots(1, 1)
 axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
-axs.set_title("REINFORCE with different discount factor")
+axs.set_title("REINFORCE with different discount factors")
 axs.set_xlabel("Steps")
 axs.set_ylabel("Expected Return")
 axs.grid(True, which="both", linestyle="--", linewidth=0.5)

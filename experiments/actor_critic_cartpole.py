@@ -11,7 +11,7 @@ def cantor_pairing(x, y):
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
-def expected_return(env, weights, gamma, episodes=100):
+def expected_return(env, weights, gamma, episodes=50):
     G = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e)
@@ -48,13 +48,14 @@ def softmax_action(phi, weights, eps):
 
 def dlog_softmax_probs(phi, weights, eps, act):
     probs = softmax_probs(phi, weights, eps)
-    dlog_pi = phi.T * (np.eye(n_actions)[act] - probs)  # confirm this is correct or not
+    dlog_pi = phi.T @ (np.eye(n_actions)[act] - probs)
     return dlog_pi
 
 def actor_critic(gamma, seed):
     actor_weights = np.zeros((phi_dummy.shape[1], n_actions))
     critic_weights = np.zeros(phi_dummy.shape[1])
     eps = 1.0
+    eps_decay = eps / max_steps
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
     exp_return = expected_return(env_eval, actor_weights, gamma, episodes_eval)
@@ -86,10 +87,10 @@ def actor_critic(gamma, seed):
 
             exp_return_history[tot_steps-1] = exp_return
 
-            if tot_steps % eval_steps == 0:           # confirm whether we need this or not
+            if tot_steps % eval_steps == 0:
                 exp_return = expected_return(env_eval, actor_weights, gamma, episodes_eval)
             
-            eps = max(eps - 1.0 / max_steps, 0.01)
+            eps = max(eps - eps_decay, 0.01)
 
             pbar.set_description(
                 f"G: {exp_return:.3f}"
@@ -124,7 +125,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 env_id = "CartPole-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
-episodes_eval = 100
+episodes_eval = 50
 eval_steps = 100
 
 state_dim = env.observation_space.shape[0]
@@ -157,27 +158,27 @@ centers = np.array(
         for i in range(state_dim)
     ])
 ).reshape(state_dim, -1).T
-sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.75 + 1e-8  # change sigmas for more/less generalization
+sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.99 + 1e-8  # change sigmas for more/less generalization
 get_phi = lambda state : rbf_features(state.reshape(-1, state_dim), centers, sigmas)  # reshape because feature functions expect shape (N, S)
 phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
 # hyperparameters
 gamma_values = [0.1, 0.5, 0.8, 0.99]
-alpha_actor = 0.01
-alpha_critic = 0.1
+alpha_actor = 0.001
+alpha_critic = 0.01
 episodes_per_update = 10
 max_steps = 200000
 n_seeds = 10
 results_exp_ret = np.zeros((
     len(gamma_values),
     n_seeds,
-    max_steps,      # check why not divide by eval steps
+    max_steps,
 ))
 
 fig, axs = plt.subplots(1, 1)
 axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
-axs.set_title("Actor-Critic with different discount factor")
-axs.set_xlabel("Steps X 100")
+axs.set_title("Actor-Critic with different discount factors")
+axs.set_xlabel("Steps")
 axs.set_ylabel("Expected Return")
 axs.grid(True, which="both", linestyle="--", linewidth=0.5)
 axs.minorticks_on()

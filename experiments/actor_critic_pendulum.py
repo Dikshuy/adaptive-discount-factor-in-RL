@@ -11,7 +11,7 @@ def cantor_pairing(x, y):
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
-def expected_return(env, weights, gamma, episodes=100):
+def expected_return(env, weights, gamma, episodes=50):
     G = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e)
@@ -73,7 +73,7 @@ def actor_critic(gamma, seed):
 
             exp_return_history[tot_steps-1] = exp_return
 
-            if tot_steps % eval_steps == 0:           # confirm whether we need this or not
+            if tot_steps % eval_steps == 0:
                 exp_return = expected_return(env_eval, actor_weights, gamma, episodes_eval)
             
             sigma = max(sigma - 1 / max_steps, 0.1)
@@ -112,13 +112,13 @@ env_id = "Pendulum-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
 episodes_eval = 100
-eval_steps = 100
+eval_steps = 200
 
 state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 
 # automatically set centers and sigmas
-n_centers = [7] * state_dim
+n_centers = [10] * state_dim
 state_low = env.observation_space.low
 state_high = env.observation_space.high
 centers = np.array(
@@ -131,27 +131,27 @@ centers = np.array(
         for i in range(state_dim)
     ])
 ).reshape(state_dim, -1).T
-sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.75 + 1e-8  # change sigmas for more/less generalization
+sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.99 + 1e-8  # change sigmas for more/less generalization
 get_phi = lambda state : rbf_features(state.reshape(-1, state_dim), centers, sigmas)  # reshape because feature functions expect shape (N, S)
 phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
 # hyperparameters
 gamma_values = [0.1, 0.5, 0.8, 0.99]
-alpha_actor = 0.01
-alpha_critic = 0.1
+alpha_actor = 0.001
+alpha_critic = 0.01
 episodes_per_update = 10
 max_steps = 1000000
 n_seeds = 10
 results_exp_ret = np.zeros((
     len(gamma_values),
     n_seeds,
-    max_steps // eval_steps,
+    max_steps,
 ))
 
 fig, axs = plt.subplots(1, 1)
 axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
-axs.set_title("Actor-Critic with different discount factor")
-axs.set_xlabel("Steps X 100")
+axs.set_title("Actor-Critic with different discount factors")
+axs.set_xlabel("Steps")
 axs.set_ylabel("Expected Return")
 axs.grid(True, which="both", linestyle="--", linewidth=0.5)
 axs.minorticks_on()
