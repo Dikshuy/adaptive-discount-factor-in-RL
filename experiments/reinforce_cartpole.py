@@ -175,11 +175,11 @@ discuss and change later if required
 '''
 for i, state in enumerate(state_low):
     if state == -np.inf:
-        state_low[i] = -500
+        state_low[i] = -5.5
 
 for i, state in enumerate(state_high):
     if state == np.inf:
-        state_high[i] = 500
+        state_high[i] = 5.5
 
 centers = np.array(
     np.meshgrid(*[
@@ -200,8 +200,8 @@ phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 # gamma = 0.99
 gamma_values = [0.1, 0.5, 0.8, 0.99]
 alpha = 0.01
-episodes_per_update = 10
-max_steps = 100000
+episodes_per_update = 20
+max_steps = 20000
 baselines = ["none"]#, "mean_return", "min_variance"]
 n_seeds = 10
 results_exp_ret = np.zeros((
