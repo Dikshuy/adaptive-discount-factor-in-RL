@@ -125,14 +125,12 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 env_id = "CartPole-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
-episodes_eval = 50
-eval_steps = 100
 
 state_dim = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
 # automatically set centers and sigmas
-n_centers = [15] * state_dim
+n_centers = [20] * state_dim
 state_low = env.observation_space.low
 state_high = env.observation_space.high
 
@@ -142,11 +140,11 @@ discuss and change later if required
 '''
 for i, state in enumerate(state_low):
     if state == -np.inf:
-        state_low[i] = -500
+        state_low[i] = -5.5
 
 for i, state in enumerate(state_high):
     if state == np.inf:
-        state_high[i] = 500
+        state_high[i] = 5.5
 
 centers = np.array(
     np.meshgrid(*[
@@ -166,9 +164,10 @@ phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 gamma_values = [0.1, 0.5, 0.8, 0.99]
 alpha_actor = 0.001
 alpha_critic = 0.01
-episodes_per_update = 10
-max_steps = 200000
-n_seeds = 10
+episodes_eval = 50
+eval_steps = 100
+max_steps = 20000
+n_seeds = 1
 results_exp_ret = np.zeros((
     len(gamma_values),
     n_seeds,

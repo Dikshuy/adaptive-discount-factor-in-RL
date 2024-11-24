@@ -111,14 +111,12 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 env_id = "Pendulum-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
-episodes_eval = 100
-eval_steps = 200
 
 state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 
 # automatically set centers and sigmas
-n_centers = [10] * state_dim
+n_centers = [15] * state_dim
 state_low = env.observation_space.low
 state_high = env.observation_space.high
 centers = np.array(
@@ -139,8 +137,9 @@ phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 gamma_values = [0.1, 0.5, 0.8, 0.99]
 alpha_actor = 0.001
 alpha_critic = 0.01
-episodes_per_update = 10
-max_steps = 1000000
+episodes_eval = 50
+eval_steps = 100
+max_steps = 50000
 n_seeds = 10
 results_exp_ret = np.zeros((
     len(gamma_values),
