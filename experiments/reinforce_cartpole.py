@@ -19,7 +19,7 @@ def expected_return(env, weights, gamma, episodes=50):
         t = 0
         while not done:
             phi = get_phi(s)
-            a = eps_greedy_action(phi, weights, 0)
+            a = softmax_action(phi, weights, 0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
             G[e] += r
@@ -160,7 +160,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 env_id = "CartPole-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
-episodes_eval = 100
+episodes_eval = 50
 state_dim = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
@@ -169,10 +169,7 @@ n_centers = [15] * state_dim
 state_low = env.observation_space.low
 state_high = env.observation_space.high
 
-'''
-cutting inf to high numbers for RBFs
-discuss and change later if required
-'''
+# limiting the bounds to finite numbers
 for i, state in enumerate(state_low):
     if state == -np.inf:
         state_low[i] = -5.5

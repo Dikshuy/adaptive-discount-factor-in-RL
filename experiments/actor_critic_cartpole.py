@@ -19,7 +19,7 @@ def expected_return(env, weights, gamma, episodes=50):
         t = 0
         while not done:
             phi = get_phi(s)
-            a = eps_greedy_action(phi, weights, 0)
+            a = softmax_action(phi, weights, 0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
             G[e] += r
@@ -27,15 +27,6 @@ def expected_return(env, weights, gamma, episodes=50):
             t += 1
     return G.mean()
 
-def eps_greedy_action(phi, weights, eps):
-    if np.random.rand() < eps:
-        return np.random.randint(n_actions)
-    else:
-        Q = np.dot(phi, weights).ravel()
-        best = np.argwhere(Q == Q.max())
-        i = np.random.choice(range(best.shape[0]))
-        return best[i][0]
-    
 def softmax_probs(phi, weights, eps):
     q = np.dot(phi, weights)
     q_exp = np.exp((q - np.max(q, -1, keepdims=True)) / max(eps, 1e-12))
@@ -134,10 +125,7 @@ n_centers = [20] * state_dim
 state_low = env.observation_space.low
 state_high = env.observation_space.high
 
-'''
-cutting inf to high numbers for RBFs
-discuss and change later if required
-'''
+# limiting the bounds to finite numbers
 for i, state in enumerate(state_low):
     if state == -np.inf:
         state_low[i] = -5.5
@@ -167,7 +155,7 @@ alpha_critic = 0.01
 episodes_eval = 50
 eval_steps = 100
 max_steps = 20000
-n_seeds = 1
+n_seeds = 10
 results_exp_ret = np.zeros((
     len(gamma_values),
     n_seeds,
