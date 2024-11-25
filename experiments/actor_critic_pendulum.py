@@ -19,7 +19,7 @@ def expected_return(env, weights, sigma, episodes=50):
         t = 0
         while not done:
             phi = get_phi(s)
-            a = np.dot(phi, weights, sigma)
+            a = gaussian_action(phi, weights, sigma)
             a_clip = np.clip(a, env.action_space.low, env.action_space.high)
             s_next, r, terminated, truncated, _ = env.step(a_clip)
             done = terminated or truncated
