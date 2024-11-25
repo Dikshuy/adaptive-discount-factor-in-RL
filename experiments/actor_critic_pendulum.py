@@ -11,7 +11,7 @@ def cantor_pairing(x, y):
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
-def expected_return(env, weights, gamma, episodes=50):
+def expected_return(env, weights, sigma, episodes=50):
     G = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e)
@@ -19,7 +19,7 @@ def expected_return(env, weights, gamma, episodes=50):
         t = 0
         while not done:
             phi = get_phi(s)
-            a = np.dot(phi, weights)
+            a = np.dot(phi, weights, sigma)
             a_clip = np.clip(a, env.action_space.low, env.action_space.high)
             s_next, r, terminated, truncated, _ = env.step(a_clip)
             done = terminated or truncated
@@ -74,7 +74,7 @@ def actor_critic(gamma, seed):
             exp_return_history[tot_steps-1] = exp_return
 
             if tot_steps % eval_steps == 0:
-                exp_return = expected_return(env_eval, actor_weights, gamma, episodes_eval)
+                exp_return = expected_return(env_eval, actor_weights, sigma, episodes_eval)
             
             sigma = max(sigma - 1 / max_steps, 0.1)
 
@@ -137,9 +137,9 @@ phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 gamma_values = [0.1, 0.5, 0.8, 0.99]
 alpha_actor = 0.001
 alpha_critic = 0.01
-episodes_eval = 50
-eval_steps = 100
-max_steps = 50000
+episodes_eval = 10
+eval_steps = 500
+max_steps = 1000000
 n_seeds = 10
 results_exp_ret = np.zeros((
     len(gamma_values),
