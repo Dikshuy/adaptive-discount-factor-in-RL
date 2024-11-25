@@ -1,0 +1,23 @@
+# Acrobot-v1
+# CartPole-v1
+# MountainCar-v0
+# LunarLander-v3
+# Pendulum-v1
+
+ENV_ID = "CartPole-v1"
+
+init_stuff.ENV_ID = %ENV_ID
+init_stuff.LR = 0.001
+
+eval.EVAL_EPI = 10 # * How many epsiodes to evaluate (1 IF BOTH ENVIRONMENT AND POLICY IS DETERMINISTIC)
+
+main.GAMMAS = [0.99, 0.75, 0.5, 0.25, 0.1] # * IMPORTANT - SHOULD BE A LIST
+main.NAME = %ENV_ID
+main.NUM_SEEDS = 30
+
+train.MAX_STEPS = 1e5
+train.EVAL_EVERY = 500
+
+train.EXP_INIT = 1.0
+train.EXP_DECAY_UNTILL = 0.9 # linearly decay epsilon untill what fraction of MAX_STEPS
+train.EXP_MIN = 0.01
