@@ -11,7 +11,7 @@ def cantor_pairing(x, y):
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
-def expected_return(env, weights, gamma, episodes=50):
+def expected_return(env, weights, eps, episodes=50):
     G = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e)
@@ -19,7 +19,7 @@ def expected_return(env, weights, gamma, episodes=50):
         t = 0
         while not done:
             phi = get_phi(s)
-            a = softmax_action(phi, weights, 0)
+            a = softmax_action(phi, weights, eps)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
             G[e] += r
@@ -89,7 +89,7 @@ def reinforce(gamma, baseline="none"):
     eps_decay = eps / max_steps
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
-    exp_return = expected_return(env_eval, weights, gamma, episodes_eval)
+    exp_return = expected_return(env_eval, weights, eps, episodes_eval)
     pbar = tqdm(total=max_steps)
 
     while tot_steps < max_steps:
@@ -124,7 +124,7 @@ def reinforce(gamma, baseline="none"):
         T = len(G) # steps taken while collecting data
         exp_return_history[tot_steps : tot_steps + T] = exp_return
         tot_steps += T
-        exp_return = expected_return(env_eval, weights, gamma, episodes_eval)
+        exp_return = expected_return(env_eval, weights, eps, episodes_eval)
         eps = max(eps - eps_decay, 0.01)
 
         pbar.set_description(
@@ -160,7 +160,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 env_id = "CartPole-v1"
 env = gymnasium.make(env_id)
 env_eval = gymnasium.make(env_id)
-episodes_eval = 50
+episodes_eval = 10
 state_dim = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
