@@ -39,7 +39,7 @@ EVAL_STEPS=100
 MAX_STEPS=20000
 EXPERIMENT_NAME="cartpole"
 
-python actor_critic_cartpole.py \
+python3 actor_critic_cartpole.py \
     --gamma_values $GAMMA_VALUES \
     --alpha_actor_values $ALPHA_ACTOR_VALUES \
     --alpha_critic_values $ALPHA_CRITIC_VALUES \
@@ -61,7 +61,7 @@ EVAL_STEPS=500
 MAX_STEPS=1000000
 EXPERIMENT_NAME="mountain-car"
 
-python actor_critic_mountain_car.py \
+python3 actor_critic_mountain_car.py \
     --gamma_values $GAMMA_VALUES \
     --alpha_actor_values $ALPHA_ACTOR_VALUES \
     --alpha_critic_values $ALPHA_CRITIC_VALUES \
@@ -79,11 +79,11 @@ echo ""
 
 echo "Running Acrobot Experiment..."
 
-EVAL_STEPS=100
-MAX_STEPS=20000
+EVAL_STEPS=500
+MAX_STEPS=1000000
 EXPERIMENT_NAME="acrobot"
 
-python actor_critic_acrobot.py \
+python3 actor_critic_acrobot.py \
     --gamma_values $GAMMA_VALUES \
     --alpha_actor_values $ALPHA_ACTOR_VALUES \
     --alpha_critic_values $ALPHA_CRITIC_VALUES \
