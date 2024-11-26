@@ -135,7 +135,7 @@ if __name__ == "__main__":
     n_actions = env.action_space.n
 
     # automatically set centers and sigmas
-    n_centers = [20] * state_dim
+    n_centers = [10] * state_dim
     state_low = env.observation_space.low
     state_high = env.observation_space.high
 
