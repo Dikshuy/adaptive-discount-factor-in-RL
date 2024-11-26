@@ -13,7 +13,7 @@ echo "Running Pendulum Experiment..."
 
 EVAL_STEPS=500
 MAX_STEPS=1000000
-EXPERIMENT_NAME="gamma${GAMMA_VALUES}_actor${ALPHA_ACTOR_VALUES}_critic${ALPHA_CRITIC_VALUES}"
+EXPERIMENT_NAME="pendulum"
 
 python3 actor_critic_pendulum.py \
     --gamma_values $GAMMA_VALUES \
@@ -28,13 +28,13 @@ python3 actor_critic_pendulum.py \
 
 echo "Pendulum Experiment Completed"
 
-echo "---------------------------------------------"
+echo "-----------------------------------------------------------------------------------------"
 
 echo "Running CartPole Experiment..."
 
 EVAL_STEPS=100
 MAX_STEPS=20000
-EXPERIMENT_NAME="gamma${GAMMA_VALUES}_actor${ALPHA_ACTOR_VALUES}_critic${ALPHA_CRITIC_VALUES}"
+EXPERIMENT_NAME="cartpole"
 
 python actor_critic_cartpole.py \
     --gamma_values $GAMMA_VALUES \

@@ -201,4 +201,5 @@ if __name__ == "__main__":
     plt.tight_layout()
 
     plt.savefig(f"{args.save_dir}/{args.experiment_name}.png", dpi=300)
-    plt.show()
+    plt.close()
+    # plt.show()

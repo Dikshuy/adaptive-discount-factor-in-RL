@@ -109,8 +109,6 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, label="", linestyle
     error = 1.96 * error / np.sqrt(data.shape[0])
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Actor-Critic for Pendulum-v1")
     parser.add_argument("--gamma_values", type=float, nargs="+", default=[0.1, 0.5, 0.8, 0.99], help="Discount factor values")
@@ -159,7 +157,7 @@ if __name__ == "__main__":
     results_exp_ret = {}
 
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
-    axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
+    # axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
     axs.set_title("Actor-Critic with different discount factors")
     axs.set_xlabel("Steps")
     axs.set_ylabel("Expected Return")
@@ -195,4 +193,5 @@ if __name__ == "__main__":
     plt.tight_layout()
 
     plt.savefig(f"{args.save_dir}/{args.experiment_name}.png", dpi=300)
-    plt.show()
+    plt.close()
+    # plt.show()
