@@ -120,6 +120,8 @@ if __name__ == "__main__":
     parser.add_argument("--eval_steps", type=int, default=500, help="Steps between evaluations")
     parser.add_argument("--max_steps", type=int, default=1000000, help="Maximum training steps")
     parser.add_argument("--n_seeds", type=int, default=30, help="Number of random seeds")
+    parser.add_argument('--save_dir', type=str, help="Directory to save the plot")
+    parser.add_argument('--experiment_name', type=str, help="Experiment name")
     args = parser.parse_args()
 
 
@@ -192,5 +194,5 @@ if __name__ == "__main__":
     axs.legend(fontsize="small", loc="best")
     plt.tight_layout()
 
-    plt.savefig("actor_critic_pendulum.png", dpi=300)
+    plt.savefig(f"{args.save_dir}/{args.experiment_name}.png", dpi=300)
     plt.show()

@@ -1,22 +1,53 @@
 #!/bin/bash
-#SBATCH --time=1-02:00:00
-#SBATCH --output=results-%j.out
-#SBATCH --account=def-mtaylor3
-#SBATCH --cpus-per-task=2
+
+mkdir -p results/pendulum
+mkdir -p results/cartpole
 
 GAMMA_VALUES="0.1 0.5 0.8 0.99"
 ALPHA_ACTOR_VALUES="0.001"
 ALPHA_CRITIC_VALUES="0.01"
 EPISODES_EVAL=10
-EVAL_STEPS=500
-MAX_STEPS=1000000
 N_SEEDS=30
 
-python3 actor_critic.py \
+echo "Running Pendulum Experiment..."
+
+EVAL_STEPS=500
+MAX_STEPS=1000000
+EXPERIMENT_NAME="gamma${GAMMA_VALUES}_actor${ALPHA_ACTOR_VALUES}_critic${ALPHA_CRITIC_VALUES}"
+
+python3 actor_critic_pendulum.py \
     --gamma_values $GAMMA_VALUES \
     --alpha_actor_values $ALPHA_ACTOR_VALUES \
     --alpha_critic_values $ALPHA_CRITIC_VALUES \
     --episodes_eval $EPISODES_EVAL \
     --eval_steps $EVAL_STEPS \
     --max_steps $MAX_STEPS \
-    --n_seeds $N_SEEDS
+    --n_seeds $N_SEEDS \
+    --save_dir "results/pendulum" \
+    --experiment_name $EXPERIMENT_NAME
+
+echo "Pendulum Experiment Completed"
+
+echo "---------------------------------------------"
+
+echo "Running CartPole Experiment..."
+
+EVAL_STEPS=100
+MAX_STEPS=20000
+EXPERIMENT_NAME="gamma${GAMMA_VALUES}_actor${ALPHA_ACTOR_VALUES}_critic${ALPHA_CRITIC_VALUES}"
+
+python actor_critic_cartpole.py \
+    --gamma_values $GAMMA_VALUES \
+    --alpha_actor_values $ALPHA_ACTOR_VALUES \
+    --alpha_critic_values $ALPHA_CRITIC_VALUES \
+    --episodes_eval $EPISODES_EVAL \
+    --eval_steps $EVAL_STEPS \
+    --max_steps $MAX_STEPS \
+    --n_seeds $N_SEEDS \
+    --save_dir "results/cartpole" \
+    --experiment_name $EXPERIMENT_NAME
+
+echo "CartPole Experiment Completed"
+
+echo "All experiments completed successfully!"
+
