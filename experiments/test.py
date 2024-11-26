@@ -11,6 +11,7 @@ def cantor_pairing(x, y):
     return int(0.5 * (x + y) * (x + y + 1) + y)
 
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
+    # print(np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0))
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
 def expected_return(env, weights, eps, episodes=10):
@@ -115,19 +116,19 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Actor-Critic for MountainCar-v0")
+    parser = argparse.ArgumentParser(description="Actor-Critic for Acrobot-v1")
     parser.add_argument("--gamma_values", type=float, nargs="+", default=[0.1, 0.5, 0.8, 0.99], help="Discount factor values")
     parser.add_argument("--alpha_actor_values", type=float, nargs="+", default=[0.001], help="Learning rate for actor")
     parser.add_argument("--alpha_critic_values", type=float, nargs="+", default=[0.01], help="Learning rate for critic")
     parser.add_argument("--episodes_eval", type=int, default=10, help="Number of evaluation episodes")
-    parser.add_argument("--eval_steps", type=int, default=500, help="Steps between evaluations")
-    parser.add_argument("--max_steps", type=int, default=1000000, help="Maximum training steps")
+    parser.add_argument("--eval_steps", type=int, default=100, help="Steps between evaluations")
+    parser.add_argument("--max_steps", type=int, default=20000, help="Maximum training steps")
     parser.add_argument("--n_seeds", type=int, default=30, help="Number of random seeds")
     parser.add_argument('--save_dir', type=str, help="Directory to save the plot")
     parser.add_argument('--experiment_name', type=str, help="Experiment name")
     args = parser.parse_args()
     
-    env_id = "MountainCar-v0"
+    env_id = "Acrobot-v1"
     env = gymnasium.make(env_id)
     env_eval = gymnasium.make(env_id)
 
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     n_actions = env.action_space.n
 
     # automatically set centers and sigmas
-    n_centers = [15] * state_dim
+    n_centers = [7]*state_dim
     state_low = env.observation_space.low
     state_high = env.observation_space.high
 
@@ -149,7 +150,7 @@ if __name__ == "__main__":
             for i in range(state_dim)
         ])
     ).reshape(state_dim, -1).T
-    sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.99 + 1e-8  # change sigmas for more/less generalization
+    sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.75 + 1e-8  # change sigmas for more/less generalization
     get_phi = lambda state : rbf_features(state.reshape(-1, state_dim), centers, sigmas)  # reshape because feature functions expect shape (N, S)
     phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
@@ -191,6 +192,6 @@ if __name__ == "__main__":
     axs.legend(fontsize="small", loc="best")
     plt.tight_layout()
 
-    plt.savefig(f"{args.save_dir}/{args.experiment_name}.png", dpi=300)
+    plt.savefig("test.png", dpi=300)
     plt.close()
     # plt.show()

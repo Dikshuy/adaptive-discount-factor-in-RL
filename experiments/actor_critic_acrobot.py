@@ -120,8 +120,8 @@ if __name__ == "__main__":
     parser.add_argument("--alpha_actor_values", type=float, nargs="+", default=[0.001], help="Learning rate for actor")
     parser.add_argument("--alpha_critic_values", type=float, nargs="+", default=[0.01], help="Learning rate for critic")
     parser.add_argument("--episodes_eval", type=int, default=10, help="Number of evaluation episodes")
-    parser.add_argument("--eval_steps", type=int, default=100, help="Steps between evaluations")
-    parser.add_argument("--max_steps", type=int, default=20000, help="Maximum training steps")
+    parser.add_argument("--eval_steps", type=int, default=200, help="Steps between evaluations")
+    parser.add_argument("--max_steps", type=int, default=100000, help="Maximum training steps")
     parser.add_argument("--n_seeds", type=int, default=30, help="Number of random seeds")
     parser.add_argument('--save_dir', type=str, help="Directory to save the plot")
     parser.add_argument('--experiment_name', type=str, help="Experiment name")
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     n_actions = env.action_space.n
 
     # automatically set centers and sigmas
-    n_centers = [10] * state_dim
+    n_centers = [7] * state_dim
     state_low = env.observation_space.low
     state_high = env.observation_space.high
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
             for i in range(state_dim)
         ])
     ).reshape(state_dim, -1).T
-    sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.99 + 1e-8  # change sigmas for more/less generalization
+    sigmas = (state_high - state_low) / np.asarray(n_centers) * 0.75 + 1e-8  # change sigmas for more/less generalization
     get_phi = lambda state : rbf_features(state.reshape(-1, state_dim), centers, sigmas)  # reshape because feature functions expect shape (N, S)
     phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
