@@ -1,9 +1,13 @@
 # adaptive-discount-factor-in-RL
 
+### clone the repository
+```bash
+git clone https://github.com/Dikshuy/adaptive-discount-factor-in-RL.git
+```
 
 ### Installing gym-simplegrid
 ```bash
-cd gym-simplegrid
+cd adaptive-discount-factor-in-RL/gym-simplegrid
 pip3 install -e .
 cd ..
 ```
@@ -23,5 +27,6 @@ chmod +x job.sh
 
 #### Run actor critic for different environments 
 ```bash
+cd experiments/
 ./job.sh
 ```
