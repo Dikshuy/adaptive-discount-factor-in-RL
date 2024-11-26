@@ -115,7 +115,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Actor-Critic for CartPole-v1")
+    parser = argparse.ArgumentParser(description="Actor-Critic for Acrobot-v1")
     parser.add_argument("--gamma_values", type=float, nargs="+", default=[0.1, 0.5, 0.8, 0.99], help="Discount factor values")
     parser.add_argument("--alpha_actor_values", type=float, nargs="+", default=[0.001], help="Learning rate for actor")
     parser.add_argument("--alpha_critic_values", type=float, nargs="+", default=[0.01], help="Learning rate for critic")
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     parser.add_argument('--experiment_name', type=str, help="Experiment name")
     args = parser.parse_args()
     
-    env_id = "CartPole-v1"
+    env_id = "Acrobot-v1"
     env = gymnasium.make(env_id)
     env_eval = gymnasium.make(env_id)
 
@@ -135,18 +135,9 @@ if __name__ == "__main__":
     n_actions = env.action_space.n
 
     # automatically set centers and sigmas
-    n_centers = [20] * state_dim
+    n_centers = [10] * state_dim
     state_low = env.observation_space.low
     state_high = env.observation_space.high
-
-    # limiting the bounds to finite numbers
-    for i, state in enumerate(state_low):
-        if state == -np.inf:
-            state_low[i] = -5.5
-
-    for i, state in enumerate(state_high):
-        if state == np.inf:
-            state_high[i] = 5.5
 
     centers = np.array(
         np.meshgrid(*[

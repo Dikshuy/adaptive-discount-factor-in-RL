@@ -13,7 +13,7 @@ def cantor_pairing(x, y):
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
-def expected_return(env, weights, sigma, episodes=50):
+def expected_return(env, weights, sigma, episodes=10):
     G = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e)
@@ -45,7 +45,7 @@ def actor_critic(gamma, seed, alpha_actor, alpha_critic, episodes_eval, eval_ste
     sigma = 2.0  # for Gaussian
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
-    exp_return = expected_return(env_eval, actor_weights, gamma, episodes_eval)
+    exp_return = expected_return(env_eval, actor_weights, sigma, episodes_eval)
     pbar = tqdm(total=max_steps)
 
     while tot_steps < max_steps:
