@@ -51,7 +51,7 @@ def actor_critic(gamma, seed, alpha_actor, alpha_critic, episodes_eval, eval_ste
     eps_decay = eps / max_steps
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
-    exp_return = expected_return(env_eval, actor_weights, eps, episodes_eval)
+    exp_return = expected_return(env_eval, actor_weights, 0, episodes_eval)
     pbar = tqdm(total=max_steps)
 
     while tot_steps < max_steps:
@@ -81,7 +81,7 @@ def actor_critic(gamma, seed, alpha_actor, alpha_critic, episodes_eval, eval_ste
             exp_return_history[tot_steps-1] = exp_return
 
             if tot_steps % eval_steps == 0:
-                exp_return = expected_return(env_eval, actor_weights, eps, episodes_eval)
+                exp_return = expected_return(env_eval, actor_weights, 0, episodes_eval)
             
             eps = max(eps - eps_decay, 0.01)
 
