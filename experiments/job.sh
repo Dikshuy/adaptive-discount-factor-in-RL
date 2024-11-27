@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
-#SBATCH --mem-per-cpu=4G
-#SBATCH --time=20:00:00
+#SBATCH --mem-per-cpu=8G
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=6
+#SBATCH --cpus-per-task=1
 
 mkdir -p results/pendulum
 mkdir -p results/cartpole

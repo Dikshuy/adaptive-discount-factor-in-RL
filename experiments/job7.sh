@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
-#SBATCH --mem-per-cpu=32G
-#SBATCH --time=36:00:00
+#SBATCH --mem-per-cpu=8G
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=1
 
 mkdir -p results/alpha/mountain_car
 
@@ -16,7 +16,7 @@ N_SEEDS=30
 echo "Running MoutainCar Experiment..."
 
 EVAL_STEPS=500
-MAX_STEPS=100000
+MAX_STEPS=1000000
 EXPERIMENT_NAME="mountain-car"
 
 python3 actor_critic_mountain_car.py \
