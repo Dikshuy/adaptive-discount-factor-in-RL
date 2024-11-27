@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import argparse
 import itertools
+import pickle
+import os
 
 np.set_printoptions(precision=3, suppress=True)
 
@@ -15,6 +17,7 @@ def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
 
 def expected_return(env, weights, eps, episodes=10):
     G = np.zeros(episodes)
+    T = np.zeros(episodes)
     for e in range(episodes):
         s, _ = env.reset(seed=e)
         done = False
@@ -27,7 +30,9 @@ def expected_return(env, weights, eps, episodes=10):
             G[e] += r
             s = s_next
             t += 1
-    return G.mean()
+            if done:
+                T[e] = t
+    return G.mean(), T.mean()
 
 def softmax_probs(phi, weights, eps):
     q = np.dot(phi, weights)
@@ -47,11 +52,19 @@ def dlog_softmax_probs(phi, weights, eps, act):
 def actor_critic(gamma, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps):
     actor_weights = np.zeros((phi_dummy.shape[1], n_actions))
     critic_weights = np.zeros(phi_dummy.shape[1])
+
+    train_rets, train_lens = [], []
+    eval_rets, eval_lens = [], []
+    t_len, t_ret = 0, 0
+
     eps = 1.0
     eps_decay = eps / max_steps
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
     exp_return = expected_return(env_eval, actor_weights, 0, episodes_eval)
+    exp_return, exp_len= expected_return(env_eval, actor_weights, 0, episodes_eval)
+    eval_rets.append(exp_return)
+    eval_lens.append(exp_len)
     pbar = tqdm(total=max_steps)
 
     while tot_steps < max_steps:
@@ -80,9 +93,16 @@ def actor_critic(gamma, seed, alpha_actor, alpha_critic, episodes_eval, eval_ste
 
             exp_return_history[tot_steps-1] = exp_return
 
+            if done:
+                train_rets.append(t_ret)
+                train_lens.append(t_len)
+                t_len, t_ret = 0, 0 
+
             if tot_steps % eval_steps == 0:
-                exp_return = expected_return(env_eval, actor_weights, 0, episodes_eval)
-            
+                exp_return, eval_len = expected_return(env_eval, actor_weights, 0, episodes_eval)
+                eval_rets.append(exp_return)
+                eval_lens.append(eval_len) 
+
             eps = max(eps - eps_decay, 0.01)
 
             pbar.set_description(
@@ -91,7 +111,7 @@ def actor_critic(gamma, seed, alpha_actor, alpha_critic, episodes_eval, eval_ste
         pbar.update(T)
 
     pbar.close()
-    return exp_return_history
+    return exp_return_history, (train_rets, train_lens), (eval_rets, eval_lens)
 
 def smooth(arr, span):
     re = np.convolve(arr, np.ones(span * 2 + 1) / (span * 2 + 1), mode="same")
@@ -126,6 +146,8 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', type=str, help="Directory to save the plot")
     parser.add_argument('--experiment_name', type=str, help="Experiment name")
     args = parser.parse_args()
+
+    os.makedirs(args.save_dir, exist_ok=True)
     
     env_id = "CartPole-v1"
     env = gymnasium.make(env_id)
@@ -163,6 +185,7 @@ if __name__ == "__main__":
     phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
     results_exp_ret = {}
+    results = {}
 
     fig, axs = plt.subplots(1, 1, figsize=(12, 8))
     axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
@@ -182,10 +205,22 @@ if __name__ == "__main__":
             label = f"γ={gamma}, α_actor={alpha_actor}, α_critic={alpha_critic}"
             key = (gamma, alpha_actor, alpha_critic)
             results_exp_ret[key] = np.zeros((args.n_seeds, args.max_steps))
+            train_returns, train_lengths = [], []
+            eval_returns, eval_lengths = [], []
             for seed in range(args.n_seeds):
-                exp_return_history = actor_critic(gamma, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
+                exp_return_history, train, eval = actor_critic(gamma, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
                 results_exp_ret[key][seed] = exp_return_history
+                train_returns.append(train[0])
+                train_lengths.append(train[1])
+                eval_returns.append(eval[0])
+                eval_lengths.append(eval[1])
                 print(f"γ={gamma}, α_actor={alpha_actor}, α_critic={alpha_critic}, seed={seed}")
+            results[gamma] = {
+                'training returns': train_returns,
+                'training lengths': train_lengths,
+                'evaluation returns': eval_returns,
+                'evaluation lengths': eval_lengths    
+            }
             error_shade_plot(
                 axs,
                 results_exp_ret[key],
@@ -196,10 +231,17 @@ if __name__ == "__main__":
                 color=color
             )
 
-
     axs.legend(fontsize="small", loc="best")
     plt.tight_layout()
 
-    plt.savefig(f"{args.save_dir}/{args.experiment_name}.png", dpi=300)
+    plot_path = os.path.join(args.save_dir, f"{args.experiment_name}.png")
+    plt.savefig(plot_path, dpi=300)
     plt.close()
     # plt.show()
+
+    results_path = os.path.join(args.save_dir, f"{args.experiment_name}_results.pkl")
+    with open(results_path, 'wb') as f:
+        pickle.dump(results, f)
+
+    print(f"Results saved to {results_path}")
+    print(f"Plot saved to {plot_path}")
