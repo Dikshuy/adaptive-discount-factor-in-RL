@@ -184,13 +184,11 @@ if __name__ == "__main__":
     axs.grid(True, which="both", linestyle="--", linewidth=0.5)
     axs.minorticks_on()
 
-    linestyles = ["-"]
-    distinct_colors = [
-    'red', 'green', 'blue', 'cyan', 'magenta', 'yellow', 'orange', 'purple', 
-    'brown', 'pink', 'lime', 'teal', 'indigo', 'violet', 'coral', 'darkgreen']
+    linestyles = ["-", "--", "-.", ":"]
+    colors = plt.cm.viridis(np.linspace(0, 1, len(args.gamma_values)))
 
-    color_idx = 0
     for gamma_idx, gamma in enumerate(args.gamma_values):
+        color = colors[gamma_idx]
         for alpha_idx, (alpha_actor, alpha_critic) in enumerate(itertools.product(args.alpha_actor_values, args.alpha_critic_values)):
             linestyle = linestyles[alpha_idx % len(linestyles)]
             label = f"γ={gamma}, α_actor={alpha_actor}, α_critic={alpha_critic}"
@@ -212,8 +210,6 @@ if __name__ == "__main__":
                 'evaluation returns': eval_returns,
                 'evaluation lengths': eval_lengths    
             }
-            color = distinct_colors[color_idx % len(distinct_colors)]  # Assign a unique color
-            color_idx += 1
             error_shade_plot(
                 axs,
                 results_exp_ret[key],
