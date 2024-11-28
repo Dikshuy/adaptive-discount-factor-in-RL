@@ -1,60 +1,20 @@
-import gymnasium as gym
-from gym_simplegrid.envs import SimpleGridEnv
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+import os
 import argparse
 import itertools
+import numpy as np
+import matplotlib.pyplot as plt
+import gymnasium as gym
+from gym_simplegrid.envs import SimpleGridEnv
+from maps import load_map
 
 np.set_printoptions(precision=3)
 
-obstacle_map = [
-    "00000100000",
-    "00000100000",
-    "00000100000",
-    "00000000000",
-    "00000100000",
-    "11011111101",
-    "00000100000",
-    "00000100000",
-    "00000100000",
-    "00000000000",
-    "00000100000",
-]
-
-length = len(obstacle_map)
-width = len(obstacle_map[0])
-
-options ={
-    'start_loc': (length - 1, 0),
-    'goal_loc': (0, width - 1)
-}
-
-env = gym.make(
-    'SimpleGrid-v0', 
-    obstacle_map=obstacle_map,
-)
-
-env_eval = gym.make(
-    'SimpleGrid-v0', 
-    obstacle_map=obstacle_map,
-)
-
-obs, _ = env.reset(seed=1, options = options)
-rew = env.unwrapped.reward
-done = env.unwrapped.done
-
-n_states = env.observation_space.n
-n_actions = env.action_space.n
-
-
-def eps_greedy_action(Q, s, eps):
+def eps_greedy_action(env, Q, s, eps):
     if np.random.rand() < eps:
-        action = np.random.choice(n_actions)
+        action = np.random.choice(env.action_space.n)
     else:
         action = np.random.choice(np.where(Q[s] == np.max(Q[s]))[0])
     return action
-
 
 def expected_return(env, Q, gamma, episodes=1):
     G = np.zeros(episodes)
@@ -64,7 +24,7 @@ def expected_return(env, Q, gamma, episodes=1):
         done = False
         t = 0
         while not done:
-            a = eps_greedy_action(Q, s, 0.0)
+            a = eps_greedy_action(env, Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
             G[e] += r
@@ -74,8 +34,7 @@ def expected_return(env, Q, gamma, episodes=1):
                 episode_steps[e] = t
     return G.mean(), episode_steps.mean()
 
-
-def Q_learning(env, Q, gamma, eps, alpha, max_steps, eval_steps, adaptive_gamma, _seed):
+def Q_learning(env, env_eval, options, Q, gamma, eps, alpha, max_steps, eval_steps, adaptive_gamma, _seed):
     exp_ret = []
     steps_per_episode = []
     eps_decay = eps / max_steps
@@ -89,7 +48,7 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, eval_steps, adaptive_gamma,
 
         while not done and tot_steps < max_steps:
             tot_steps += 1
-            a = eps_greedy_action(Q, s, eps)
+            a = eps_greedy_action(env, Q, s, eps)
             s_next, r, terminated, truncated, _ = env.step(a)
 
             done = terminated or truncated
@@ -114,7 +73,6 @@ def Q_learning(env, Q, gamma, eps, alpha, max_steps, eval_steps, adaptive_gamma,
 
     return Q, exp_ret, steps_per_episode
 
-
 def smooth(arr, span):
     re = np.convolve(arr, np.ones(span * 2 + 1) / (span * 2 + 1), mode="same")
     re[0] = arr[0]
@@ -122,7 +80,6 @@ def smooth(arr, span):
         re[i] = np.average(arr[: i + span])
         re[-i] = np.average(arr[-i - span:])
     return re
-
 
 def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
     y = np.nanmean(data, 0)
@@ -140,6 +97,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Q-Learning for SimpleGrid")
+    parser.add_argument("--environments", type=str, nargs="+", required=True, help="List of environment names (e.g., EASY_SPARSE, DIFFICULT_DENSE)")
     parser.add_argument("--gamma_values", type=float, nargs="+", default=[0.1, 0.5, 0.9], help="Gamma values")
     parser.add_argument("--adaptive_gamma", action="store_true", default=False, help="Adaptive gamma")
     parser.add_argument("--alpha_values", type=float, nargs="+", default=[0.1, 0.5], help="Alpha values")
@@ -158,69 +116,90 @@ if __name__ == "__main__":
     combinations = list(itertools.product(args.gamma_values, args.alpha_values, args.initial_values))
     color_dict = {comb: color_map(i) for i, comb in enumerate(combinations)}
 
-    results_exp_ret = np.zeros((
-        len(args.gamma_values),
-        len(args.alpha_values),
-        len(args.initial_values),
-        args.n_seeds,
-        args.max_steps // args.eval_steps,
-    ))
+    output_dirs = {}
+    for env_name in args.environments:
+        output_dir = os.path.join(args.save_dir, env_name)
+        os.makedirs(output_dir, exist_ok=True)
+        output_dirs[env_name] = output_dir
 
-    results_steps= np.zeros((
-        len(args.gamma_values),
-        len(args.alpha_values),
-        len(args.initial_values),
-        args.n_seeds,
-        args.max_steps // args.eval_steps,
-    ))
+    for env_name in args.environments:
+        cost_map = load_map(env_name)
+        env = gym.make("SimpleGrid-v0", obstacle_map=cost_map)
+        env_eval = gym.make("SimpleGrid-v0", obstacle_map=cost_map)
+        length = len(cost_map)
+        width = len(cost_map[0])
 
-    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+        print("Loading:", env_name, "grid")
 
-    for ax in axs:
-        ax.set_xlabel("Steps (X100)", fontsize=10)
-        ax.grid(True, which="both", linestyle="--", linewidth=0.5)
-        ax.minorticks_on()
+        options ={
+            'start_loc': (length - 1, 0),
+            'goal_loc': (0, width - 1)
+        }
 
-    for i, gamma in enumerate(args.gamma_values):
-        for j, alpha in enumerate(args.alpha_values):
-            for k, init_value in enumerate(args.initial_values):
-                for seed in range(args.n_seeds):
-                    Q = np.zeros((n_states, n_actions)) + init_value
-                    Q, exp_ret, steps = Q_learning(env, Q, gamma, 1.0, alpha, args.max_steps, args.eval_steps, args.adaptive_gamma, seed)
-                    results_exp_ret[i, j, k, seed] = exp_ret
-                    results_steps[i, j, k, seed] = steps
-                    
-                    print(f"γ={gamma}, α={alpha}, Q_o={init_value}, seed={seed}")
+        results_exp_ret = np.zeros((
+            len(args.gamma_values),
+            len(args.alpha_values),
+            len(args.initial_values),
+            args.n_seeds,
+            args.max_steps // args.eval_steps,
+        ))
 
-                label = f"γ={gamma}, α={alpha}, $Q_o$={init_value}"
-                color_ = color_dict[(gamma, alpha, init_value)]
+        results_steps= np.zeros((
+            len(args.gamma_values),
+            len(args.alpha_values),
+            len(args.initial_values),
+            args.n_seeds,
+            args.max_steps // args.eval_steps,
+        ))
 
-                error_shade_plot(
-                    axs[0], results_exp_ret[i, j, k], stepsize=1, smoothing_window=20,
-                    label=label, linestyle=linestyles[j % len(linestyles)], color=color_
-                )
-                error_shade_plot(
-                    axs[1], results_steps[i, j, k], stepsize=1, smoothing_window=20,
-                    label=label, linestyle=linestyles[j % len(linestyles)], color=color_
-                )
+        fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
-    axs[0].set_ylabel("Average Return", fontsize=10)
-    if args.adaptive_gamma:
-        axs[0].set_title("Q-Learning Performance with adaptive γ")
-    else:
-        axs[0].set_title("Q-Learning Performance")
-    axs[0].legend(fontsize="small", loc="best")
+        for ax in axs:
+            ax.set_xlabel("Steps (X100)", fontsize=10)
+            ax.grid(True, which="both", linestyle="--", linewidth=0.5)
+            ax.minorticks_on()
 
-    axs[1].set_ylabel("Steps to Goal", fontsize=10)
-    if args.adaptive_gamma:
-        axs[1].set_title("Steps per Episode with adaptive γ")
-    else:
-        axs[1].set_title("Steps per Episode")
-    axs[1].legend(fontsize="small", loc="best")
+        for i, gamma in enumerate(args.gamma_values):
+            for j, alpha in enumerate(args.alpha_values):
+                for k, init_value in enumerate(args.initial_values):
+                    for seed in range(args.n_seeds):
+                        Q = np.zeros((env.observation_space.n, env.action_space.n)) + init_value
+                        Q, exp_ret, steps = Q_learning(env, env_eval, options, Q, gamma, 1.0, alpha, args.max_steps, args.eval_steps, args.adaptive_gamma, seed)
+                        results_exp_ret[i, j, k, seed] = exp_ret
+                        results_steps[i, j, k, seed] = steps
+                        
+                        print(f"γ={gamma}, α={alpha}, Q_o={init_value}, seed={seed}")
 
-    if args.adaptive_gamma:
-        plt.savefig(f"{args.save_dir}/adaptive_gamma_q_learning.png", dpi=300)
-    else:
-        plt.savefig(f"{args.save_dir}/q_learning.png", dpi=300)
-    plt.show()
-    # plt.close()
+                    label = f"γ={gamma}, α={alpha}, $Q_o$={init_value}"
+                    color_ = color_dict[(gamma, alpha, init_value)]
+
+                    error_shade_plot(
+                        axs[0], results_exp_ret[i, j, k], stepsize=1, smoothing_window=20,
+                        label=label, linestyle=linestyles[j % len(linestyles)], color=color_
+                    )
+                    error_shade_plot(
+                        axs[1], results_steps[i, j, k], stepsize=1, smoothing_window=20,
+                        label=label, linestyle=linestyles[j % len(linestyles)], color=color_
+                    )
+
+        axs[0].set_ylabel("Average Return", fontsize=10)
+        axs[0].set_ylim([-5,1.4])
+        if args.adaptive_gamma:
+            axs[0].set_title("Q-Learning Performance with adaptive γ")
+        else:
+            axs[0].set_title("Q-Learning Performance")
+        axs[0].legend(fontsize="small", loc="best")
+
+        axs[1].set_ylabel("Steps to Goal", fontsize=10)
+        if args.adaptive_gamma:
+            axs[1].set_title("Steps per Episode with adaptive γ")
+        else:
+            axs[1].set_title("Steps per Episode")
+        axs[1].legend(fontsize="small", loc="best")
+
+        if args.adaptive_gamma:
+            plt.savefig(f"{output_dirs[env_name]}/adaptive_gamma_q_learning.png", dpi=300)
+        else:
+            plt.savefig(f"{output_dirs[env_name]}/q_learning.png", dpi=300)
+        # plt.show()
+        plt.close()
