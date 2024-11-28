@@ -156,7 +156,7 @@ if __name__ == "__main__":
     n_actions = env.action_space.n
 
     # automatically set centers and sigmas
-    n_centers = [10] * state_dim
+    n_centers = [7] * state_dim
     state_low = env.observation_space.low
     state_high = env.observation_space.high
 
@@ -233,14 +233,14 @@ if __name__ == "__main__":
     axs.legend(fontsize="small", loc="best")
     plt.tight_layout()
 
+    results_path = os.path.join(args.save_dir, f"{args.experiment_name}_results.pkl")
+    with open(results_path, 'wb') as f:
+        pickle.dump(results, f)
+
     plot_path = os.path.join(args.save_dir, f"{args.experiment_name}.png")
     plt.savefig(plot_path, dpi=300)
     plt.close()
     # plt.show()
-
-    results_path = os.path.join(args.save_dir, f"{args.experiment_name}_results.pkl")
-    with open(results_path, 'wb') as f:
-        pickle.dump(results, f)
 
     print(f"Results saved to {results_path}")
     print(f"Plot saved to {plot_path}")

@@ -224,14 +224,14 @@ if __name__ == "__main__":
     axs.legend(fontsize="small", loc="best")
     plt.tight_layout()
 
+    results_path = os.path.join(args.save_dir, f"{args.experiment_name}_results.pkl")
+    with open(results_path, 'wb') as f:
+        pickle.dump(results, f)
+
     plot_path = os.path.join(args.save_dir, f"{args.experiment_name}.png")
     plt.savefig(plot_path, dpi=300)
     plt.close()
     # plt.show()
-
-    results_path = os.path.join(args.save_dir, f"{args.experiment_name}_results.pkl")
-    with open(results_path, 'wb') as f:
-        pickle.dump(results, f)
 
     print(f"Results saved to {results_path}")
     print(f"Plot saved to {plot_path}")
