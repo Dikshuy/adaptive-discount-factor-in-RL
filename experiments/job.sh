@@ -1,25 +1,23 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
-#SBATCH --mem-per-cpu=8G
-#SBATCH --time=24:00:00
+#SBATCH --mem-per-cpu=1G
+#SBATCH --time=00:10:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
-mkdir -p results/pendulum
-mkdir -p results/cartpole
-mkdir -p results/mountain_car
-mkdir -p results/acrobot
 
-GAMMA_VALUES="0.1 0.5 0.8 0.99"
-ALPHA_ACTOR_VALUES="0.001"
-ALPHA_CRITIC_VALUES="0.01"
-EPISODES_EVAL=10
-N_SEEDS=30
+mkdir -p test/pendulum
+
+GAMMA_VALUES="0.95"
+ALPHA_ACTOR_VALUES="0.001 0.01"
+ALPHA_CRITIC_VALUES="0.001 0.01"
+EPISODES_EVAL=2
+N_SEEDS=5
+EVAL_STEPS=50
+MAX_STEPS=1000
 
 echo "Running Pendulum Experiment..."
 
-EVAL_STEPS=500
-MAX_STEPS=1000000
 EXPERIMENT_NAME="pendulum"
 
 python3 actor_critic_pendulum.py \
@@ -30,18 +28,18 @@ python3 actor_critic_pendulum.py \
     --eval_steps $EVAL_STEPS \
     --max_steps $MAX_STEPS \
     --n_seeds $N_SEEDS \
-    --save_dir "results/pendulum" \
+    --save_dir "test/pendulum" \
     --experiment_name $EXPERIMENT_NAME
 
 echo "Pendulum Experiment Completed"
-
-echo "-----------------------------------------------------------------------------------------"
 echo ""
+
+echo "========================================================================================="
+
+mkdir -p test/cartpole
 
 echo "Running CartPole Experiment..."
 
-EVAL_STEPS=100
-MAX_STEPS=20000
 EXPERIMENT_NAME="cartpole"
 
 python3 actor_critic_cartpole.py \
@@ -52,18 +50,18 @@ python3 actor_critic_cartpole.py \
     --eval_steps $EVAL_STEPS \
     --max_steps $MAX_STEPS \
     --n_seeds $N_SEEDS \
-    --save_dir "results/cartpole" \
+    --save_dir "test/cartpole" \
     --experiment_name $EXPERIMENT_NAME
 
 echo "CartPole Experiment Completed"
-
-echo "-----------------------------------------------------------------------------------------"
 echo ""
+
+echo "========================================================================================="
+
+mkdir -p test/mountain_car
 
 echo "Running MoutainCar Experiment..."
 
-EVAL_STEPS=500
-MAX_STEPS=1000000
 EXPERIMENT_NAME="mountain-car"
 
 python3 actor_critic_mountain_car.py \
@@ -74,18 +72,18 @@ python3 actor_critic_mountain_car.py \
     --eval_steps $EVAL_STEPS \
     --max_steps $MAX_STEPS \
     --n_seeds $N_SEEDS \
-    --save_dir "results/mountain_car" \
+    --save_dir "test/mountain_car" \
     --experiment_name $EXPERIMENT_NAME
 
 echo "Mountain Car Experiment Completed"
-
-echo "-----------------------------------------------------------------------------------------"
 echo ""
+
+echo "========================================================================================="
+
+mkdir -p test/acrobot
 
 echo "Running Acrobot Experiment..."
 
-EVAL_STEPS=500
-MAX_STEPS=1000000
 EXPERIMENT_NAME="acrobot"
 
 python3 actor_critic_acrobot.py \
@@ -96,7 +94,7 @@ python3 actor_critic_acrobot.py \
     --eval_steps $EVAL_STEPS \
     --max_steps $MAX_STEPS \
     --n_seeds $N_SEEDS \
-    --save_dir "results/acrobot" \
+    --save_dir "test/acrobot" \
     --experiment_name $EXPERIMENT_NAME
 
 echo "Acrobot Experiment Completed"
