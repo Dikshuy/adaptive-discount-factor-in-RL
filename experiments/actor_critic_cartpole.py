@@ -49,9 +49,9 @@ def dlog_softmax_probs(phi, weights, eps, act):
     dlog_pi = phi.T @ (np.eye(n_actions)[act] - probs)
     return dlog_pi
 
-def actor_critic(gamma, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps):
-    actor_weights = np.zeros((phi_dummy.shape[1], n_actions))
-    critic_weights = np.zeros(phi_dummy.shape[1])
+def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps):
+    actor_weights = np.zeros((phi_dummy.shape[1], n_actions)) + init
+    critic_weights = np.zeros(phi_dummy.shape[1]) + init
 
     train_rets, train_lens = [], []
     eval_rets, eval_lens = [], []
@@ -138,6 +138,7 @@ if __name__ == "__main__":
     parser.add_argument("--gamma_values", type=float, nargs="+", default=[0.1, 0.5, 0.8, 0.99], help="Discount factor values")
     parser.add_argument("--alpha_actor_values", type=float, nargs="+", default=[0.001], help="Learning rate for actor")
     parser.add_argument("--alpha_critic_values", type=float, nargs="+", default=[0.01], help="Learning rate for critic")
+    parser.add_argument("--init", type=float, default=0, help="Initial value of weights")
     parser.add_argument("--episodes_eval", type=int, default=10, help="Number of evaluation episodes")
     parser.add_argument("--eval_steps", type=int, default=100, help="Steps between evaluations")
     parser.add_argument("--max_steps", type=int, default=20000, help="Maximum training steps")
@@ -151,6 +152,8 @@ if __name__ == "__main__":
     env_id = "CartPole-v1"
     env = gymnasium.make(env_id)
     env_eval = gymnasium.make(env_id)
+
+    print("Running", env_id, "with", args.init, "as initial weight value!")
 
     state_dim = env.observation_space.shape[0]
     n_actions = env.action_space.n
@@ -207,7 +210,7 @@ if __name__ == "__main__":
             train_returns, train_lengths = [], []
             eval_returns, eval_lengths = [], []
             for seed in range(args.n_seeds):
-                exp_return_history, train, eval = actor_critic(gamma, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
+                exp_return_history, train, eval = actor_critic(gamma, args.init, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
                 results_exp_ret[key][seed] = exp_return_history
                 train_returns.append(train[0])
                 train_lengths.append(train[1])
