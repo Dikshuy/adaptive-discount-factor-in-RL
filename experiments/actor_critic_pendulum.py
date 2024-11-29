@@ -194,7 +194,7 @@ if __name__ == "__main__":
         color = colors[gamma_idx]
         for alpha_idx, (alpha_actor, alpha_critic) in enumerate(itertools.product(args.alpha_actor_values, args.alpha_critic_values)):
             linestyle = linestyles[alpha_idx % len(linestyles)]
-            label = f"γ={gamma}, α_actor={alpha_actor}, α_critic={alpha_critic}"
+            label = f"γ={gamma}"
             key = (gamma, alpha_actor, alpha_critic)
             results_exp_ret[key] = np.zeros((args.n_seeds, args.max_steps))
             train_returns, train_lengths = [], []
