@@ -22,6 +22,7 @@ EXPERIMENT_NAME="pendulum"
 
 python3 actor_critic_pendulum.py \
     --gamma_values $GAMMA_VALUES \
+    --adaptive_gamma \
     --init $INIT_VALUE \
     --alpha_actor_values $ALPHA_ACTOR_VALUES \
     --alpha_critic_values $ALPHA_CRITIC_VALUES \

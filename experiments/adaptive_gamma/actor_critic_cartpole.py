@@ -51,7 +51,7 @@ def dlog_softmax_probs(phi, weights, eps, act):
     dlog_pi = phi.T @ (np.eye(n_actions)[act] - probs)
     return dlog_pi
 
-def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps):
+def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps, adaptive_gamma):
     actor_weights = np.zeros((phi_dummy.shape[1], n_actions)) + init
     critic_weights = np.zeros(phi_dummy.shape[1]) + init
 
@@ -62,6 +62,7 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
     eps = 1.0
     eps_decay = eps / max_steps
     tot_steps = 0
+    episodes = 0
     exp_return_history = np.zeros(max_steps)
     td_error_history = np.zeros(max_steps)
     exp_return, exp_len= expected_return(env_eval, actor_weights, 0, episodes_eval)
@@ -99,7 +100,10 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
             if done:
                 train_rets.append(t_ret)
                 train_lens.append(t_len)
-                t_len, t_ret = 0, 0 
+                t_len, t_ret = 0, 0
+                episodes += 1
+                if adaptive_gamma:
+                    gamma = min(gamma + episodes * gamma / max_steps, 0.95)  
 
             if tot_steps % eval_steps == 0:
                 exp_return, eval_len = expected_return(env_eval, actor_weights, 0, episodes_eval)
@@ -140,6 +144,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, **kwargs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Actor-Critic for CartPole-v1")
     parser.add_argument("--gamma_values", type=float, nargs="+", default=[0.1, 0.5, 0.8, 0.99], help="Discount factor values")
+    parser.add_argument("--adaptive_gamma", action="store_true", default=False, help="Adaptive gamma")
     parser.add_argument("--alpha_actor_values", type=float, nargs="+", default=[0.001], help="Learning rate for actor")
     parser.add_argument("--alpha_critic_values", type=float, nargs="+", default=[0.01], help="Learning rate for critic")
     parser.add_argument("--init", type=float, default=0, help="Initial value of weights")
@@ -150,6 +155,9 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', type=str, help="Directory to save the plot")
     parser.add_argument('--experiment_name', type=str, help="Experiment name")
     args = parser.parse_args()
+
+    if args.adaptive_gamma:
+        args.gamma_values = [0.1]
 
     os.makedirs(args.save_dir, exist_ok=True)
     
@@ -195,7 +203,7 @@ if __name__ == "__main__":
     results = {}
 
     fig, axs = plt.subplots(1, 2, figsize=(12, 8))
-    axs[0].set_title("Actor-Critic with different discount factors")
+    axs[0].set_title("Actor-Critic with adaptive discount factors")
     axs[0].set_xlabel("Steps")
     axs[0].set_ylabel("Expected Return")
     axs[0].grid(True, which="both", linestyle="--", linewidth=0.5)
@@ -223,7 +231,7 @@ if __name__ == "__main__":
             train_returns, train_lengths = [], []
             eval_returns, eval_lengths = [], []
             for seed in range(args.n_seeds):
-                exp_return_history, train, eval, td_error_history = actor_critic(gamma, args.init, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
+                exp_return_history, train, eval, td_error_history = actor_critic(gamma, args.init, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps, args.adaptive_gamma)
                 results_exp_ret[key][seed] = exp_return_history
                 results_td_err[key][seed] = td_error_history
                 train_returns.append(train[0])
