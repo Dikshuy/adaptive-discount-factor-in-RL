@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INIT_VALUES="0 0.1 0.5 1"
+INIT_VALUES="-50 -25 -10 0 10 25 50"
 
 BASE_SCRIPT="job3.sh"
 
