@@ -1,6 +1,8 @@
 import gymnasium
 import numpy as np
 import matplotlib.pyplot as plt
+from cycler import cycler
+import seaborn as sns
 from tqdm import tqdm
 import argparse
 import itertools
@@ -61,6 +63,7 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
     eps_decay = eps / max_steps
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
+    td_error_history = np.zeros(max_steps)
     exp_return, exp_len= expected_return(env_eval, actor_weights, 0, episodes_eval)
     eval_rets.append(exp_return)
     eval_lens.append(exp_len)
@@ -91,6 +94,7 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
             tot_steps += 1
 
             exp_return_history[tot_steps-1] = exp_return
+            td_error_history[tot_steps-1] = abs(td_error)
 
             if done:
                 train_rets.append(t_ret)
@@ -110,7 +114,7 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
         pbar.update(T)
 
     pbar.close()
-    return exp_return_history, (train_rets, train_lens), (eval_rets, eval_lens)
+    return exp_return_history, (train_rets, train_lens), (eval_rets, eval_lens), td_error_history
 
 def smooth(arr, span):
     re = np.convolve(arr, np.ones(span * 2 + 1) / (span * 2 + 1), mode="same")
@@ -178,18 +182,26 @@ if __name__ == "__main__":
     phi_dummy = get_phi(env.reset()[0])  # to get the number of features
 
     results_exp_ret = {}
+    results_td_err = {}
     results = {}
 
-    fig, axs = plt.subplots(1, 1, figsize=(12, 8))
-    axs.set_prop_cycle(color=["red", "green", "blue", "cyan"])
-    axs.set_title("Actor-Critic with different discount factors")
-    axs.set_xlabel("Steps")
-    axs.set_ylabel("Expected Return")
-    axs.grid(True, which="both", linestyle="--", linewidth=0.5)
-    axs.minorticks_on()
+    fig, axs = plt.subplots(1, 2, figsize=(12, 8))
+    axs[0].set_title("Actor-Critic with different discount factors")
+    axs[0].set_xlabel("Steps")
+    axs[0].set_ylabel("Expected Return")
+    axs[0].grid(True, which="both", linestyle="--", linewidth=0.5)
+    axs[0].minorticks_on()
+
+    axs[1].set_title("TD Error")
+    axs[1].set_xlabel("Steps")
+    axs[1].set_ylabel("TD Error")
+    axs[1].grid(True, which="both", linestyle="--", linewidth=0.5)
+    axs[1].minorticks_on()
 
     linestyles = ["-", "--", "-.", ":"]
-    colors = plt.cm.viridis(np.linspace(0, 1, len(args.gamma_values)))
+    colorblind_colors = sns.color_palette("colorblind", len(args.gamma_values))
+    plt.rc('axes', prop_cycle=cycler('color', colorblind_colors))
+    colors = sns.color_palette("colorblind", len(args.gamma_values))
 
     for gamma_idx, gamma in enumerate(args.gamma_values):
         color = colors[gamma_idx]
@@ -198,11 +210,13 @@ if __name__ == "__main__":
             label = f"γ={gamma}"
             key = (gamma, alpha_actor, alpha_critic)
             results_exp_ret[key] = np.zeros((args.n_seeds, args.max_steps))
+            results_td_err[key] = np.zeros((args.n_seeds, args.max_steps))
             train_returns, train_lengths = [], []
             eval_returns, eval_lengths = [], []
             for seed in range(args.n_seeds):
-                exp_return_history, train, eval = actor_critic(gamma, args.init, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
+                exp_return_history, train, eval, td_error_history = actor_critic(gamma, args.init, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
                 results_exp_ret[key][seed] = exp_return_history
+                results_td_err[key][seed] = td_error_history
                 train_returns.append(train[0])
                 train_lengths.append(train[1])
                 eval_returns.append(eval[0])
@@ -215,7 +229,7 @@ if __name__ == "__main__":
                 'evaluation lengths': eval_lengths    
             }
             error_shade_plot(
-                axs,
+                axs[0],
                 results_exp_ret[key],
                 stepsize=1,
                 smoothing_window=20,
@@ -223,18 +237,27 @@ if __name__ == "__main__":
                 linestyle=linestyle,
                 color=color
             )
+            error_shade_plot(
+                axs[1],
+                results_td_err[key],
+                stepsize=1,
+                smoothing_window=20,
+                label=label,
+                linestyle=linestyle,
+                color=color
+            )
+        gamma_results_path = os.path.join(args.save_dir, f"{args.experiment_name}_init_{args.init}_gamma_{gamma}_results.pkl")
+        with open(gamma_results_path, 'wb') as f:
+            pickle.dump(results[gamma], f)
+        print(f"Gamma-specific results saved to {gamma_results_path}")
 
-    axs.legend(fontsize="small", loc="best")
+    axs[0].legend(fontsize="small", loc="best")
+    axs[1].legend(fontsize="small", loc="best")
     plt.tight_layout()
-
-    results_path = os.path.join(args.save_dir, f"{args.experiment_name}_{args.init}_results.pkl")
-    with open(results_path, 'wb') as f:
-        pickle.dump(results, f)
 
     plot_path = os.path.join(args.save_dir, f"{args.experiment_name}_{args.init}.png")
     plt.savefig(plot_path, dpi=300)
     plt.close()
     # plt.show()
 
-    print(f"Results saved to {results_path}")
     print(f"Plot saved to {plot_path}")
