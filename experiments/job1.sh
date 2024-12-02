@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
 #SBATCH --mem-per-cpu=8G
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
 mkdir -p results/pendulum
 
 GAMMA_VALUES="0.1 0.5 0.8 0.95 0.99"
-ALPHA_ACTOR_VALUES="0.01"
-ALPHA_CRITIC_VALUES="0.01"
+ALPHA_ACTOR_VALUES="0.1"
+ALPHA_CRITIC_VALUES="0.1"
 EPISODES_EVAL=20
 N_SEEDS=10
 INIT_VALUE=0
