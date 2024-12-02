@@ -46,7 +46,7 @@ def dlog_gaussian_probs(phi, weights, sigma, action: np.array):
     return phi * (action - mu) / (sigma**2)
 
 def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps, adaptive_gamma):
-    actor_weights = np.zeros((phi_dummy.shape[1], action_dim)) + init
+    actor_weights = np.zeros((phi_dummy.shape[1], action_dim))
     critic_weights = np.zeros(phi_dummy.shape[1]) + init
 
     train_rets, train_lens = [], []

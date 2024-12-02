@@ -52,7 +52,7 @@ def dlog_softmax_probs(phi, weights, eps, act):
     return dlog_pi
 
 def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps, adaptive_gamma):
-    actor_weights = np.zeros((phi_dummy.shape[1], n_actions)) + init
+    actor_weights = np.zeros((phi_dummy.shape[1], n_actions))
     critic_weights = np.zeros(phi_dummy.shape[1]) + init
 
     train_rets, train_lens = [], []
