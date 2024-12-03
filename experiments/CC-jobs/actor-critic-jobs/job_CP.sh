@@ -5,9 +5,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
-mkdir -p ../../results/cartpole
+mkdir -p results/cartpole
 
-GAMMA_VALUES="0.1 0.25 0.5 0.75 0.95 0.99"
+GAMMA_VALUES=0.1
 ALPHA_ACTOR_VALUES="0.01"
 ALPHA_CRITIC_VALUES="0.01"
 EPISODES_EVAL=20
@@ -29,7 +29,7 @@ python3 actor_critic_cartpole.py \
     --eval_steps $EVAL_STEPS \
     --max_steps $MAX_STEPS \
     --n_seeds $N_SEEDS \
-    --save_dir "../../results/cartpole" \
+    --save_dir "results/cartpole" \
     --experiment_name $EXPERIMENT_NAME
 
 echo "CartPole Experiment Completed"
