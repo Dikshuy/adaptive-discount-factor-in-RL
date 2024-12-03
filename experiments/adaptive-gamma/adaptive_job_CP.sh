@@ -1,16 +1,16 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
 #SBATCH --mem-per-cpu=8G
-#SBATCH --time=60:00:00
+#SBATCH --time=14:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
 mkdir -p results/cartpole
 
-GAMMA_VALUES="0.1 0.25 0.5 0.75 0.9 0.95 0.99"
+GAMMA_VALUES="0.1"
 ALPHA_ACTOR_VALUES="0.01"
 ALPHA_CRITIC_VALUES="0.01"
-EPISODES_EVAL=25
+EPISODES_EVAL=20
 N_SEEDS=30
 INIT_VALUE=0
 

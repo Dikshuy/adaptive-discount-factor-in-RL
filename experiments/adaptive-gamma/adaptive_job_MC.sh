@@ -5,22 +5,22 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
-mkdir -p results/pendulum
+mkdir -p results/mountain_car
 
-GAMMA_VALUES="0.1 0.25 0.5 0.75 0.9 0.95 0.99"
-ALPHA_ACTOR_VALUES="0.1"
-ALPHA_CRITIC_VALUES="0.1"
-EPISODES_EVAL=30
-N_SEEDS=25
+GAMMA_VALUES="0.1"
+ALPHA_ACTOR_VALUES="0.001"
+ALPHA_CRITIC_VALUES="0.01"
+EPISODES_EVAL=20
+N_SEEDS=30
 INIT_VALUE=0
 
-echo "Running Pendulum Experiment..."
+echo "Running MoutainCar Experiment..."
 
 EVAL_STEPS=500
 MAX_STEPS=500000
-EXPERIMENT_NAME="pendulum"
+EXPERIMENT_NAME="mountain-car"
 
-python3 actor_critic_pendulum.py \
+python3 actor_critic_mountain_car.py \
     --gamma_values $GAMMA_VALUES \
     --adaptive_gamma \
     --init $INIT_VALUE \
@@ -30,9 +30,9 @@ python3 actor_critic_pendulum.py \
     --eval_steps $EVAL_STEPS \
     --max_steps $MAX_STEPS \
     --n_seeds $N_SEEDS \
-    --save_dir "results/pendulum" \
+    --save_dir "results/mountain_car" \
     --experiment_name $EXPERIMENT_NAME
 
-echo "Pendulum Experiment Completed"
+echo "Mountain Car Experiment Completed"
 
 echo "========================================================================================="
