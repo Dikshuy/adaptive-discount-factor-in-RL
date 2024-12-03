@@ -7,7 +7,7 @@
 
 mkdir -p results/cartpole
 
-GAMMA_VALUES=0.1
+GAMMA_VALUE=0.1
 ALPHA_ACTOR_VALUES="0.01"
 ALPHA_CRITIC_VALUES="0.01"
 EPISODES_EVAL=20
@@ -21,7 +21,7 @@ MAX_STEPS=500000
 EXPERIMENT_NAME="cartpole"
 
 python3 actor_critic_cartpole.py \
-    --gamma_values $GAMMA_VALUES \
+    --gamma_values $GAMMA_VALUE \
     --init $INIT_VALUE \
     --alpha_actor_values $ALPHA_ACTOR_VALUES \
     --alpha_critic_values $ALPHA_CRITIC_VALUES \
