@@ -268,12 +268,12 @@ if __name__ == "__main__":
     axs[0].legend(fontsize="small", loc="best")
     axs[1].legend(fontsize="small", loc="best")
 
-    plot_path = os.path.join(args.save_dir, f"{args.experiment_name}_e_{args.init}.png")
+    plot_path = os.path.join(args.save_dir, f"{args.experiment_name}_e_{args.init}_gamma_{gamma}.png")
     fig.savefig(plot_path, dpi=300)
     plt.close(fig)
 
     axs1.legend(fontsize="small", loc="best")
-    plot_path = os.path.join(args.save_dir, f"{args.experiment_name}_{args.init}.png")
+    plot_path = os.path.join(args.save_dir, f"{args.experiment_name}_{args.init}_gamma_{gamma}.png")
     fig1.savefig(plot_path, dpi=300)
     plt.close(fig1)
     # plt.show()
