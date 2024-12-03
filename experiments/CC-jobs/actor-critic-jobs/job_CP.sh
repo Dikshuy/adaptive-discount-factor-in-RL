@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
 #SBATCH --mem-per-cpu=16G
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
