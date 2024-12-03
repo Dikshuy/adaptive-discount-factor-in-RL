@@ -210,7 +210,7 @@ if __name__ == "__main__":
     axs[1].minorticks_on()
 
     fig1, axs1 = plt.subplots(1, 1, figsize=(12, 8))
-    axs1.set_title("Actor-Critic with adaptive discount factors")
+    axs1.set_title("Actor-Critic with different discount factors")
     axs1.set_xlabel("Steps")
     axs1.set_ylabel("Expected Return")
     axs1.grid(True, which="both", linestyle="--", linewidth=0.5)
