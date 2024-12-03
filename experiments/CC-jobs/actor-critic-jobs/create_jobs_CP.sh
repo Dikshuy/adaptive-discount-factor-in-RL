@@ -3,7 +3,7 @@
 INIT_VALUES="-5 0 5"
 GAMMA_VALUES="0.1 0.25 0.5 0.75 0.95 0.99"
 
-BASE_SCRIPT="job_P.sh"
+BASE_SCRIPT="job_CP.sh"
 
 SCRIPT_DIR="./generated_scripts"
 mkdir -p $SCRIPT_DIR
