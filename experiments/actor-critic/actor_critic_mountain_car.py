@@ -152,6 +152,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     os.makedirs(args.save_dir, exist_ok=True)
+    data_path = f"{args.save_dir}/data/"
+    os.makedirs(data_path, exist_ok=True)
     
     env_id = "MountainCar-v0"
     env = gymnasium.make(env_id)
@@ -197,6 +199,13 @@ if __name__ == "__main__":
     axs[1].set_ylabel("TD Error")
     axs[1].grid(True, which="both", linestyle="--", linewidth=0.5)
     axs[1].minorticks_on()
+
+    fig1, axs1 = plt.subplots(1, 1, figsize=(12, 8))
+    axs1.set_title("Actor-Critic with adaptive discount factors")
+    axs1.set_xlabel("Steps")
+    axs1.set_ylabel("Expected Return")
+    axs1.grid(True, which="both", linestyle="--", linewidth=0.5)
+    axs1.minorticks_on()
 
     linestyles = ["-", "--", "-.", ":"]
     colorblind_colors = sns.color_palette("colorblind", len(args.gamma_values))
@@ -246,18 +255,33 @@ if __name__ == "__main__":
                 linestyle=linestyle,
                 color=color
             )
-        gamma_results_path = os.path.join(args.save_dir, f"{args.experiment_name}_init_{args.init}_gamma_{gamma}_results.pkl")
+            error_shade_plot(
+                axs1,
+                results_exp_ret[key],
+                stepsize=1,
+                smoothing_window=20,
+                label=label,
+                linestyle=linestyle,
+                color=color
+            )
+        gamma_results_path = os.path.join(data_path, f"{args.experiment_name}_init_{args.init}_gamma_{gamma}_results.pkl")
         with open(gamma_results_path, 'wb') as f:
             pickle.dump(results[gamma], f)
         print(f"Gamma-specific results saved to {gamma_results_path}")
 
-    axs[0].legend(fontsize="small", loc="best")
-    axs[1].legend(fontsize="small", loc="best")
     plt.tight_layout()
 
+    axs[0].legend(fontsize="small", loc="best")
+    axs[1].legend(fontsize="small", loc="best")
+
+    plot_path = os.path.join(args.save_dir, f"{args.experiment_name}_e_{args.init}.png")
+    fig.savefig(plot_path, dpi=300)
+    plt.close(fig)
+
+    axs1.legend(fontsize="small", loc="best")
     plot_path = os.path.join(args.save_dir, f"{args.experiment_name}_{args.init}.png")
-    plt.savefig(plot_path, dpi=300)
-    plt.close()
+    fig1.savefig(plot_path, dpi=300)
+    plt.close(fig1)
     # plt.show()
 
     print(f"Plot saved to {plot_path}")
