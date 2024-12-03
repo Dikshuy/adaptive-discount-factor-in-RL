@@ -1,8 +1,8 @@
 #!/bin/bash
 
-INIT_VALUES="-100 -50 -10 0 10 50 100"
+INIT_VALUES="-1 0 1"
 
-BASE_SCRIPT="job1.sh"
+BASE_SCRIPT="job_P.sh"
 
 for INIT in $INIT_VALUES; do
     NEW_SCRIPT="P_init_$INIT.sh"
