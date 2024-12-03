@@ -27,3 +27,4 @@ done
 
 echo "All scripts created and submitted!"
 echo "--------------------------------------------------------------"
+echo ""

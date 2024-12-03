@@ -10,7 +10,7 @@ mkdir -p $SCRIPT_DIR
 
 for INIT in $INIT_VALUES; do
     for GAMMA in $GAMMA_VALUES; do
-        NEW_SCRIPT="$SCRIPT_DIR/P_init_${INIT}_gamma_${GAMMA}.sh"
+        NEW_SCRIPT="$SCRIPT_DIR/MC_init_${INIT}_gamma_${GAMMA}.sh"
 
         sed -e "s/INIT_VALUE=0/INIT_VALUE=$INIT/" \
             -e "s/GAMMA_VALUE=0.1/GAMMA_VALUE=$GAMMA/" \
@@ -27,3 +27,4 @@ done
 
 echo "All scripts created and submitted!"
 echo "--------------------------------------------------------------"
+echo ""
