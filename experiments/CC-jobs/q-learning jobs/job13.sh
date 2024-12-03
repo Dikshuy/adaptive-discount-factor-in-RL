@@ -5,8 +5,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
-mkdir -p ../../results/q_learning/adaptive
-mkdir -p ../../results/q_learning/non_adaptive
+mkdir -p results/q_learning/adaptive
+mkdir -p results/q_learning/non_adaptive
 
 python q_learning.py \
     --environments EASY_SPARSE EASY_MEDIUM EASY_DENSE MODERATE_SPARSE MODERATE_MEDIUM MODERATE_DENSE DIFFICULT_SPARSE DIFFICULT_MEDIUM DIFFICULT_DENSE \
@@ -17,7 +17,7 @@ python q_learning.py \
     --max_steps 400000 \
     --eval_steps 100 \
     --n_seeds 50 \
-    --save_dir "../../results/q_learning/adaptive"
+    --save_dir "results/q_learning/adaptive"
 
 python q_learning.py \
     --environments EASY_SPARSE EASY_MEDIUM EASY_DENSE MODERATE_SPARSE MODERATE_MEDIUM MODERATE_DENSE DIFFICULT_SPARSE DIFFICULT_MEDIUM DIFFICULT_DENSE \
@@ -27,4 +27,4 @@ python q_learning.py \
     --max_steps 400000 \
     --eval_steps 100 \
     --n_seeds 50 \
-    --save_dir "../../results/q_learning/non_adaptive/"
+    --save_dir "results/q_learning/non_adaptive/"
