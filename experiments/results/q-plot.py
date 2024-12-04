@@ -10,7 +10,7 @@ def smooth(arr, span):
     re[0] = arr[0]
     for i in range(1, span + 1):
         re[i] = np.average(arr[: i + span])
-        re[-i] = np.average(arr[-i - span :])
+        re[-i] = np.average(arr[-i - span:])
     return re
 
 def error_shade_plot(ax, data, stepsize, smoothing_window=1, label="", linestyle="-", color=None, linewidth=1.0):
@@ -25,77 +25,92 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, label="", linestyle
     error = 1.96 * error / np.sqrt(data.shape[0])
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
-def plot_results(environment, gammas, q_initializations, base_path, save_dir):
+def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps):
     colorblind_colors = sns.color_palette("colorblind")
-    os.makedirs(save_dir, exist_ok=True)
-    plt.rc('axes', prop_cycle=cycler('color', colorblind_colors))
-    
-    for _, q_init in enumerate(q_initializations):
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.set_prop_cycle(cycler('color', colorblind_colors))
+    linestyles = ["-"]
+    plt.rc("axes", prop_cycle=cycler("color", colorblind_colors))
+    colors = sns.color_palette("colorblind", len(gamma_values))
 
-        # adaptive gamma
-        file_path = f'{adaptive_base_path}{environment}_init_{q_init}_gamma_0.1_results.pkl'
-        try:
-            with open(file_path, 'rb') as file:
-                results = pickle.load(file)
-            eval_returns = np.array(results['evaluation returns'])
-            error_shade_plot(
-                ax,
-                eval_returns,
-                stepsize=500,
-                smoothing_window=1,
-                label="γ = adaptive γ",
-                linestyle="-",
-                color=colorblind_colors[-1],
-                linewidth=3.0
-            )
-        except FileNotFoundError:
-            print(f"File not found: {file_path}")
+    for env_idx, env_name in enumerate(environments):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        env_dir_na = os.path.join(save_dir_na, env_name)
+        env_dir_a = os.path.join(save_dir_a, env_name)
+        env_plot_dir = os.path.join(plot_dir, env_name)
+
+        os.makedirs(env_plot_dir, exist_ok=True)
+
+        gamma_results_path = os.path.join(env_dir_a, f"gamma_0.1", f"Q_init_{Q_init}", f"0.1_results.pkl")
+
+        if not os.path.exists(gamma_results_path):
+            print(f"Results file not found: {gamma_results_path}")
             continue
 
-        # non-adaptive gamma
-        for gamma_idx, gamma in enumerate(gammas):
-            file_path = f'{base_path}{environment}_init_{q_init}_gamma_{gamma}_results.pkl'
-            try:
-                with open(file_path, 'rb') as file:
-                    results = pickle.load(file)
-                eval_returns = np.array(results['evaluation returns'])
-                error_shade_plot(
-                    ax,
-                    eval_returns,
-                    stepsize=500,
-                    smoothing_window=1,
-                    label=f"γ = {gamma}",
-                    linestyle="-",
-                    color=colorblind_colors[gamma_idx],
-                    linewidth=1.0
-                )
-            except FileNotFoundError:
-                print(f"File not found: {file_path}")
+        with open(gamma_results_path, "rb") as f:
+            results = pickle.load(f)
+
+        exp_ret = results["exp_ret"]
+        stepsize = eval_steps
+
+        label = f"γ=adaptive γ"
+
+        error_shade_plot(
+            ax,
+            exp_ret,
+            stepsize=stepsize,
+            smoothing_window=20,
+            label=label,
+            linestyle='--',
+            color=colorblind_colors[-1],
+            linewidth=3.0
+        )
+
+        for gamma_idx, gamma in enumerate(gamma_values):
+            gamma_results_path = os.path.join(env_dir_na, f"gamma_{gamma}", f"Q_init_{Q_init}", f"{gamma}_results.pkl")
+
+            if not os.path.exists(gamma_results_path):
+                print(f"Results file not found: {gamma_results_path}")
                 continue
-        
-        ax.set_xlabel('Time Steps')
-        ax.set_ylabel('Eval Returns')
-        ax.set_title(f'LFA AC - {environment.capitalize()}')
-        ax.legend(fontsize="x-small", loc="best")
+
+            with open(gamma_results_path, "rb") as f:
+                results = pickle.load(f)
+
+            exp_ret = results["exp_ret"]
+            stepsize = eval_steps
+
+            label = f"γ={gamma}"
+            linestyle = linestyles[gamma_idx % len(linestyles)]
+            color = colors[gamma_idx]
+
+            error_shade_plot(
+                ax,
+                exp_ret,
+                stepsize=stepsize,
+                smoothing_window=20,
+                label=label,
+                linestyle=linestyle,
+                color=color,
+                linewidth=1.0
+            )
+
+        ax.set_xlabel("Steps")
+        ax.set_ylabel("Expected Return")
+        ax.set_title(f"{env_name}")
+        ax.legend(loc="best")
         ax.grid(True, which="both", linestyle="--", linewidth=0.5)
         ax.minorticks_on()
+
+        output_path = os.path.join(env_plot_dir, f"{env_name}_{Q_init}.png")
         plt.tight_layout()
-    
-        save_path = os.path.join(save_dir, f"{environment}_init_{q_init}.png")
-        plt.savefig(save_path, dpi=300)
-        print(f"Saved plot: {save_path}")
-        plt.close()
+        plt.savefig(output_path, dpi=300)
+        print(f"Saved plot for {env_name}: {output_path}")
+        plt.close(fig)
 
-# Parameters
-environments = ['cartpole']#, 'pendulum', 'mountain_car']
-gammas = [0.1, 0.25, 0.5, 0.75, 0.95, 0.99]
-q_initializations = [-1.0, 0.0, 1.0]
-base_path = 'cartpole/data/'
-adaptive_base_path = 'adaptive-results/cartpole/data/'
-save_dir = 'plots/'
+environments = ["EASY_SPARSE", "EASY_MEDIUM", "EASY_DENSE", "MODERATE_SPARSE", "MODERATE_MEDIUM", "MODERATE_DENSE", "DIFFICULT_SPARSE", "DIFFICULT_MEDIUM", "DIFFICULT_DENSE"]
+gammas = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
+save_dir_na = "q_learning/non_adaptive"
+save_dir_a = "q_learning/adaptive"
+plot_dir = "plots/q_learning"
+Q_init = 0.0
+eval_steps = 100
 
-# Generate plots for all environments
-for env in environments:
-    plot_results(env, gammas, q_initializations, base_path, os.path.join(save_dir, env))
+plot_separate_gamma_results(environments, gammas, plot_dir, eval_steps)
