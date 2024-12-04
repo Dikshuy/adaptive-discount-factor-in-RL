@@ -31,8 +31,10 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
     plt.rc("axes", prop_cycle=cycler("color", colorblind_colors))
     colors = sns.color_palette("colorblind", len(gamma_values))
 
-    for env_idx, env_name in enumerate(environments):
-        fig, ax = plt.subplots(figsize=(12, 8))
+    for _, env_name in enumerate(environments):
+        fig, axs = plt.subplots(1, 2, figsize=(12, 8))
+        fig.suptitle(f"{env_name}", fontsize=14)
+
         env_dir_na = os.path.join(save_dir_na, env_name)
         env_dir_a = os.path.join(save_dir_a, env_name)
         env_plot_dir = os.path.join(plot_dir, env_name)
@@ -49,19 +51,31 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
             results = pickle.load(f)
 
         exp_ret = results["exp_ret"]
+        exp_steps = results["steps"]
         stepsize = eval_steps
 
         label = f"γ=adaptive γ"
 
         error_shade_plot(
-            ax,
+            axs[0],
             exp_ret,
             stepsize=stepsize,
             smoothing_window=20,
             label=label,
-            linestyle='--',
+            linestyle="--",
             color=colorblind_colors[-1],
-            linewidth=3.0
+            linewidth=3.0,
+        )
+
+        error_shade_plot(
+            axs[1],
+            exp_steps,
+            stepsize=stepsize,
+            smoothing_window=20,
+            label=label,
+            linestyle="--",
+            color=colorblind_colors[-1],
+            linewidth=3.0,
         )
 
         for gamma_idx, gamma in enumerate(gamma_values):
@@ -75,6 +89,7 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
                 results = pickle.load(f)
 
             exp_ret = results["exp_ret"]
+            exp_steps = results["steps"]
             stepsize = eval_steps
 
             label = f"γ={gamma}"
@@ -82,22 +97,39 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
             color = colors[gamma_idx]
 
             error_shade_plot(
-                ax,
+                axs[0],
                 exp_ret,
                 stepsize=stepsize,
                 smoothing_window=20,
                 label=label,
                 linestyle=linestyle,
                 color=color,
-                linewidth=1.0
+                linewidth=1.0,
             )
 
-        ax.set_xlabel("Steps")
-        ax.set_ylabel("Expected Return")
-        ax.set_title(f"{env_name}")
-        ax.legend(loc="best")
-        ax.grid(True, which="both", linestyle="--", linewidth=0.5)
-        ax.minorticks_on()
+            error_shade_plot(
+                axs[1],
+                exp_steps,
+                stepsize=stepsize,
+                smoothing_window=20,
+                label=label,
+                linestyle=linestyle,
+                color=color,
+                linewidth=1.0,
+            )
+
+        axs[0].set_xlabel("Steps")
+        axs[0].set_ylabel("Expected Return")
+        axs[0].legend(loc="best")
+        axs[0].grid(True, which="both", linestyle="--", linewidth=0.5)
+        axs[0].minorticks_on()
+        axs[0].set_ylim([-5, 1.4])
+
+        axs[1].set_xlabel("Steps")
+        axs[1].set_ylabel("Steps Taken")
+        axs[1].legend(loc="best")
+        axs[1].grid(True, which="both", linestyle="--", linewidth=0.5)
+        axs[1].minorticks_on()
 
         output_path = os.path.join(env_plot_dir, f"{env_name}_{Q_init}.png")
         plt.tight_layout()
