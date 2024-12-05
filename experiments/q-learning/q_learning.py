@@ -30,14 +30,14 @@ def expected_return(env, Q, gamma, episodes=1):
             a = eps_greedy_action(env, Q, s, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += r
+            G[e] += gamma**t * r
             s = s_next
             t += 1
             if done:
                 episode_steps[e] = t
     return G.mean(), episode_steps.mean()
 
-def Q_learning(env, env_eval, options, Q, gamma, eps, alpha, max_steps, eval_steps, adaptive_gamma, _seed):
+def Q_learning(env, env_eval, options, Q, gamma, gamma_e, eps, alpha, max_steps, eval_steps, adaptive_gamma, _seed):
     exp_ret = []
     steps_per_episode = []
     eps_decay = eps / max_steps
@@ -63,7 +63,7 @@ def Q_learning(env, env_eval, options, Q, gamma, eps, alpha, max_steps, eval_ste
             Q[s,a] += alpha * td_err
 
             if tot_steps % eval_steps == 0:
-                G, episode_steps = expected_return(env_eval, Q, gamma)
+                G, episode_steps = expected_return(env_eval, Q, gamma_e)
                 exp_ret.append(G)
                 steps_per_episode.append(episode_steps)
 
@@ -110,6 +110,8 @@ if __name__ == "__main__":
     parser.add_argument("--n_seeds", type=int, default=10, help="Number of random seeds")
     parser.add_argument("--save_dir", type=str, default=".", help="Directory to save plots")
     args = parser.parse_args()
+
+    gamma_e = 0.95
 
     if args.adaptive_gamma:
         args.gamma_values = [0.1]
@@ -174,7 +176,7 @@ if __name__ == "__main__":
                 for k, init_value in enumerate(args.initial_values):
                     for seed in range(args.n_seeds):
                         Q = np.zeros((env.observation_space.n, env.action_space.n)) + init_value
-                        Q, exp_ret, steps = Q_learning(env, env_eval, options, Q, gamma, 1.0, alpha, args.max_steps, args.eval_steps, args.adaptive_gamma, seed)
+                        Q, exp_ret, steps = Q_learning(env, env_eval, options, Q, gamma, gamma_e, 1.0, alpha, args.max_steps, args.eval_steps, args.adaptive_gamma, seed)
                         results_exp_ret[i, j, k, seed] = exp_ret
                         results_steps[i, j, k, seed] = steps
 

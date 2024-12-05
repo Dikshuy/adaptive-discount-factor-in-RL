@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
-#SBATCH --mem-per-cpu=2G
-#SBATCH --time=7:00:00
+#SBATCH --mem-per-cpu=8G
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
@@ -14,7 +14,7 @@ python q_learning.py \
     --gamma_values 0.1 0.25 0.5 0.75 0.9 0.99 \
     --alpha_values 0.1 \
     --initial_values 10.0 \
-    --max_steps 400000 \
+    --max_steps 600000 \
     --eval_steps 100 \
     --n_seeds 50 \
     --save_dir "results/q_learning/adaptive"
@@ -24,7 +24,7 @@ python q_learning.py \
     --gamma_values 0.1 0.25 0.5 0.75 0.9 0.99 \
     --alpha_values 0.1 \
     --initial_values 10.0 \
-    --max_steps 400000 \
+    --max_steps 600000 \
     --eval_steps 100 \
     --n_seeds 50 \
     --save_dir "results/q_learning/non_adaptive/"
