@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=def-mtaylor3_cpu
 #SBATCH --mem-per-cpu=8G
-#SBATCH --time=24:00:00
+#SBATCH --time=48:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
@@ -10,8 +10,8 @@ mkdir -p results/pendulum
 GAMMA_VALUE=0.1
 ALPHA_ACTOR_VALUES="0.01"
 ALPHA_CRITIC_VALUES="0.01"
-EPISODES_EVAL=20
-N_SEEDS=20
+EPISODES_EVAL=30
+N_SEEDS=30
 INIT_VALUE=0
 
 echo "Running Pendulum Experiment..."

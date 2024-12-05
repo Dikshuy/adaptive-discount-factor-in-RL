@@ -17,7 +17,7 @@ def cantor_pairing(x, y):
 def rbf_features(x: np.array, c: np.array, s: np.array) -> np.array:
     return np.exp(-(((x[:, None] - c[None]) / s[None])**2).sum(-1) / 2.0)
 
-def expected_return(env, weights, eps, episodes=10):
+def expected_return(env, weights, gamma, episodes=10):
     G = np.zeros(episodes)
     T = np.zeros(episodes)
     for e in range(episodes):
@@ -26,10 +26,10 @@ def expected_return(env, weights, eps, episodes=10):
         t = 0
         while not done:
             phi = get_phi(s)
-            a = softmax_action(phi, weights, eps)
+            a = softmax_action(phi, weights, 0.0)
             s_next, r, terminated, truncated, _ = env.step(a)
             done = terminated or truncated
-            G[e] += r
+            G[e] += gamma**t * r
             s = s_next
             t += 1
             if done:
@@ -51,7 +51,7 @@ def dlog_softmax_probs(phi, weights, eps, act):
     dlog_pi = phi.T @ (np.eye(n_actions)[act] - probs)
     return dlog_pi
 
-def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps):
+def actor_critic(gamma, gamma_env, init, seed, alpha_actor, alpha_critic, episodes_eval, eval_steps, max_steps):
     actor_weights = np.zeros((phi_dummy.shape[1], n_actions))
     critic_weights = np.zeros(phi_dummy.shape[1]) + init
     
@@ -64,7 +64,7 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
     tot_steps = 0
     exp_return_history = np.zeros(max_steps)
     td_error_history = np.zeros(max_steps)
-    exp_return, exp_len= expected_return(env_eval, actor_weights, 0, episodes_eval)
+    exp_return, exp_len= expected_return(env_eval, actor_weights, gamma_env, episodes_eval)
     eval_rets.append(exp_return)
     eval_lens.append(exp_len)
     pbar = tqdm(total=max_steps)
@@ -102,7 +102,7 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
                 t_len, t_ret = 0, 0 
 
             if tot_steps % eval_steps == 0:
-                exp_return, eval_len = expected_return(env_eval, actor_weights, 0, episodes_eval)
+                exp_return, eval_len = expected_return(env_eval, actor_weights, gamma_env, episodes_eval)
                 eval_rets.append(exp_return)
                 eval_lens.append(eval_len)
             
@@ -150,6 +150,8 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', type=str, help="Directory to save the plot")
     parser.add_argument('--experiment_name', type=str, help="Experiment name")
     args = parser.parse_args()
+
+    gamma_env = 0.95
 
     os.makedirs(args.save_dir, exist_ok=True)
     data_path = f"{args.save_dir}/data/"
@@ -223,7 +225,7 @@ if __name__ == "__main__":
             train_returns, train_lengths = [], []
             eval_returns, eval_lengths = [], []
             for seed in range(args.n_seeds):
-                exp_return_history, train, eval, td_error_history = actor_critic(gamma, args.init, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
+                exp_return_history, train, eval, td_error_history = actor_critic(gamma, gamma_env, args.init, seed, alpha_actor, alpha_critic,  args.episodes_eval, args.eval_steps, args.max_steps)
                 results_exp_ret[key][seed] = exp_return_history
                 results_td_err[key][seed] = td_error_history
                 train_returns.append(train[0])
