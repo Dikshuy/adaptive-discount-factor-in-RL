@@ -88,14 +88,11 @@ def plot_results(environment, gammas, q_initializations, base_path, save_dir):
         print(f"Saved plot: {save_path}")
         plt.close()
 
-# Parameters
-environments = ['cartpole']#, 'pendulum', 'mountain_car']
+environment = 'mountain_car'    # 'pendulum', 'cartpole', 'mountain_car'
 gammas = [0.1, 0.25, 0.5, 0.75, 0.95, 0.99]
-q_initializations = [-5.0, 5.0]
-base_path = 'cartpole/data/'
-adaptive_base_path = 'adaptive-results/cartpole/data/'
+q_initializations = [-1.0, 0.0, 1.0]
+base_path = f"{environment}/data/"
+adaptive_base_path = f"adaptive-results/{environment}/data/"
 save_dir = 'plots/'
 
-# Generate plots for all environments
-for env in environments:
-    plot_results(env, gammas, q_initializations, base_path, os.path.join(save_dir, env))
+plot_results(environment, gammas, q_initializations, base_path, os.path.join(save_dir, environment))
