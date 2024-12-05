@@ -55,8 +55,7 @@ def Q_learning(env, env_eval, options, Q, gamma, gamma_e, eps, alpha, max_steps,
             s_next, r, terminated, truncated, _ = env.step(a)
 
             done = terminated or truncated
-            eps = max(eps - eps_decay, 0.01)
-            alpha = max(alpha - alpha_decay, 0.001)
+            eps = max(eps - eps_decay, 1e-5)
 
             td_err = r + gamma * np.max(Q[s_next]) * (1 - terminated) - Q[s, a]
 
