@@ -18,7 +18,7 @@ echo "Running MoutainCar Experiment..."
 
 EVAL_STEPS=500
 MAX_STEPS=500000
-EXPERIMENT_NAME="mountain-car"
+EXPERIMENT_NAME="mountain_car"
 
 python3 actor_critic_mountain_car.py \
     --gamma_values $GAMMA_VALUE \
