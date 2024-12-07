@@ -1,6 +1,5 @@
 import os
 import argparse
-import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -8,7 +7,6 @@ from cycler import cycler
 import pickle
 import gymnasium as gym
 import gym_gridworlds
-from envs import get_grid
 
 np.set_printoptions(precision=3)
 
