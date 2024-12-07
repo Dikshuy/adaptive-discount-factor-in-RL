@@ -49,6 +49,7 @@ class SimpleGridEnv(Env):
     def __init__(self,     
         obstacle_map: str | list[str],
         render_mode: str | None = None,
+        stochasticity = 0.0,
     ):
         """
         Initialise the environment.
@@ -68,11 +69,13 @@ class SimpleGridEnv(Env):
 
         self.action_space = spaces.Discrete(len(self.MOVES))
         self.observation_space = spaces.Discrete(n=self.nrow*self.ncol)
-
+        
         # Rendering configuration
         self.fig = None
         self.render_mode = render_mode
         self.fps = self.metadata['render_fps']
+        
+        self.stochasticity = stochasticity
 
     def reset(
             self, 
@@ -118,7 +121,11 @@ class SimpleGridEnv(Env):
         """
         #assert action in self.action_space
         self.agent_action = action
-
+        
+        if np.random.rand() < self.stochasticity:
+            action = np.random.randint(0, len(self.MOVES))
+            self.agent_action = action
+            
         # Get the current position of the agent
         row, col = self.agent_xy
         dx, dy = self.MOVES[action]
