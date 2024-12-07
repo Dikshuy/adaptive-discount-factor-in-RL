@@ -17,7 +17,7 @@ def eps_greedy_action(env, Q, s, eps):
         action = np.random.choice(np.where(Q[s] == np.max(Q[s]))[0])
     return action
 
-def expected_return(env, Q, gamma, episodes=1):
+def expected_return(env, Q, gamma, episodes=10):
     G = np.zeros(episodes)
     episode_steps = np.zeros(episodes)
     for e in range(episodes):
