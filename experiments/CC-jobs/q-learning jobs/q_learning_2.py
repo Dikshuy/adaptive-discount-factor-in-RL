@@ -66,7 +66,7 @@ def Q_learning(env, env_eval, Q, gamma, gamma_env, eps, alpha, max_steps, eval_s
             if done:
                 episodes += 1
                 if adaptive_gamma:
-                    gamma = min(gamma + episodes * gamma / max_steps, 1.0)
+                    gamma = min(gamma + episodes * gamma / max_steps, gamma_env)
 
             s = s_next
 
