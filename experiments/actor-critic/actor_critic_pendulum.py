@@ -66,6 +66,7 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
         s, _ = env.reset(seed = seed)
         done = False
         T = 0
+        I = 1
 
         while not done and tot_steps < max_steps:
             phi = get_phi(s)
@@ -81,11 +82,12 @@ def actor_critic(gamma, init, seed, alpha_actor, alpha_critic, episodes_eval, ev
             td_error = r + gamma * v_next * (1 - terminated) - v
             critic_weights += alpha_critic * td_error * phi.flatten()
             dlog_pi = dlog_gaussian_probs(phi, actor_weights, sigma, a)
-            actor_weights += alpha_actor * td_error * dlog_pi.reshape(-1, 1)
+            actor_weights += alpha_actor * td_error * I * dlog_pi.reshape(-1, 1)
 
             s = s_next
             T += 1
             tot_steps += 1
+            I = I * gamma
 
             exp_return_history[tot_steps-1] = exp_return
             td_error_history[tot_steps-1] = abs(td_error)
