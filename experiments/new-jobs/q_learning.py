@@ -204,7 +204,8 @@ if __name__ == "__main__":
                     sub_dir = os.path.join(
                         output_dirs[env_name],
                         f"gamma_{gamma}",
-                        f"Q_init_{init_value}"
+                        f"Q_init_{init_value}",
+                        f"alpha_{alpha}"
                     )
                     os.makedirs(sub_dir, exist_ok=True)
 
@@ -235,14 +236,14 @@ if __name__ == "__main__":
         axs[1].legend(fontsize="small", loc="best")
 
         if args.adaptive_gamma:
-            plot_path = os.path.join(output_dirs[env_name], f"adaptive_γ_q_learning_e_{args.initial_values}.png")
+            plot_path = os.path.join(output_dirs[env_name], f"adaptive_γ_q_learning_e_{args.initial_values}_alpha_{args.alpha_values}.png")
             fig.savefig(plot_path, dpi=300)
-            plot_path = os.path.join(output_dirs[env_name], f"adaptive_γ_q_learning_{args.initial_values}.png")
+            plot_path = os.path.join(output_dirs[env_name], f"adaptive_γ_q_learning_{args.initial_values}_alpha_{args.alpha_values}.png")
             fig1.savefig(plot_path, dpi=300)
         else:
-            plot_path = os.path.join(output_dirs[env_name], f"q_learning_e_{args.initial_values}.png")
+            plot_path = os.path.join(output_dirs[env_name], f"q_learning_e_{args.initial_values}_alpha_{args.alpha_values}.png")
             fig.savefig(plot_path, dpi=300)
-            plot_path = os.path.join(output_dirs[env_name], f"q_learning_{args.initial_values}.png")
+            plot_path = os.path.join(output_dirs[env_name], f"q_learning_{args.initial_values}_alpha_{args.alpha_values}.png")
             fig1.savefig(plot_path, dpi=300)
         # plt.show()
         plt.close()
