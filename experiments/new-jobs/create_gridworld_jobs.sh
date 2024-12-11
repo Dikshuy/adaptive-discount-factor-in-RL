@@ -18,7 +18,7 @@ for INIT in $Q_INIT_VALUES; do
 
         chmod +x ${JOB_FILE}
 
-        echo "Generate job file: $JOB_GILE"
+        echo "Generate job file: $JOB_FILE"
 
         sbatch $JOB_FILE
         echo "submitted job: $JOB_FILE"

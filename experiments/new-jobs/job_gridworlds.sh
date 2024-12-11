@@ -17,7 +17,7 @@ python q_learning_2.py \
     --gamma_values 0.1 0.25 0.5 0.75 0.9 0.99 \
     --alpha_values $ALPHA \
     --initial_values $Q_INIT \
-    --max_steps 50000 \
+    --max_steps 60000 \
     --eval_steps 100 \
     --n_seeds 50 \
     --save_dir "results2/q_learning/adaptive"
@@ -27,7 +27,7 @@ python q_learning_2.py \
     --gamma_values 0.1 0.25 0.5 0.75 0.9 0.99 \
     --alpha_values $ALPHA \
     --initial_values $Q_INIT \
-    --max_steps 50000 \
+    --max_steps 60000 \
     --eval_steps 100 \
     --n_seeds 50 \
     --save_dir "results2/q_learning/non_adaptive/"
