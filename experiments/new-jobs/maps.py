@@ -109,6 +109,23 @@ def load_map(name):
         "00220002002",
         "00000100002",
     ]
+
+
+    THE_BOSS = [
+        "0000001000000",
+        "0000000000000",
+        "0002201002220",
+        "0002201002220",
+        "0002201000000",
+        "0000001000000",
+        "1110111111011",
+        "0000001000000",
+        "0000001000000",
+        "0022001000000",
+        "0000000000000",
+        "0022001000000",
+        "0000001000000",
+    ]    
     
     if name == 'EASY_SPARSE':
         return EASY_SPARSE
@@ -136,6 +153,9 @@ def load_map(name):
     
     elif name == 'DIFFICULT_DENSE':
         return DIFFICULT_DENSE
+    
+    elif name == 'THE_BOSS':
+        return THE_BOSS
     
     else:
         NotImplementedError("Check environment name!")
