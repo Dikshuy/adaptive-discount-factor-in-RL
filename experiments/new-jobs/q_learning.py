@@ -178,7 +178,7 @@ if __name__ == "__main__":
                         results_exp_ret[i, j, k, seed] = exp_ret
                         results_steps[i, j, k, seed] = steps
 
-                        print(f"γ={gamma}, Q_o={init_value}, seed={seed}")
+                        print(f"γ={gamma}, Q_o={init_value}, alpha={alpha}, seed={seed}")
 
                     if args.adaptive_gamma:
                         label = f"γ=adaptive γ"
