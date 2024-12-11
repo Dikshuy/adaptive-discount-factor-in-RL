@@ -21,7 +21,10 @@ for INIT in $Q_INIT_VALUES; do
         echo "Generate job file: $JOB_FILE"
 
         sbatch $JOB_FILE
+
         echo "submitted job: $JOB_FILE"
+
+        echo "================================="
   done
 done
 
