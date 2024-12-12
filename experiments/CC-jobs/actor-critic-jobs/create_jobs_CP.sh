@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INIT_VALUES="-5 0 5"
+INIT_VALUES="-1 0 1"
 GAMMA_VALUES="0.1 0.25 0.5 0.75 0.95 0.99"
 
 BASE_SCRIPT="job_CP.sh"

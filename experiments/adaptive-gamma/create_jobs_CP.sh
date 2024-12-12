@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INIT_VALUES="-5 0 5"
+INIT_VALUES="-1 0 1"
 
 BASE_SCRIPT="adaptive_job_CP.sh"
 

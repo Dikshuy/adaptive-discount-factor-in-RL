@@ -30,7 +30,7 @@ def expected_return(env, weights, gamma, episodes=10):
             a_clip = np.clip(a, env.action_space.low, env.action_space.high)
             s_next, r, terminated, truncated, _ = env.step(a_clip)
             done = terminated or truncated
-            G[e] += gamma**t * r
+            G[e] += r
             s = s_next
             t += 1
             if done:
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('--experiment_name', type=str, help="Experiment name")
     args = parser.parse_args()
 
-    gamma_env = 0.95
+    gamma_env = 0.99
 
     os.makedirs(args.save_dir, exist_ok=True)
     data_path = f"{args.save_dir}/data/"
