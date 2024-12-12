@@ -35,7 +35,7 @@ def plot_results(environment, gammas, q_initializations, base_path, save_dir):
         ax.set_prop_cycle(cycler('color', colorblind_colors))
 
         # adaptive gamma
-        file_path = f'{adaptive_base_path}{environment}_init_{q_init}_gamma_0.1_results.pkl'
+        file_path = f'{adaptive_base_path}{environment}_init_{q_init}_gamma_0.9_results.pkl'
         try:
             with open(file_path, 'rb') as file:
                 results = pickle.load(file)
@@ -88,7 +88,7 @@ def plot_results(environment, gammas, q_initializations, base_path, save_dir):
         print(f"Saved plot: {save_path}")
         plt.close()
 
-environment = 'mountain_car'    # 'pendulum', 'cartpole', 'mountain_car'
+environment = 'pendulum'    # 'pendulum', 'cartpole', 'mountain_car'
 gammas = [0.1, 0.25, 0.5, 0.75, 0.95, 0.99]
 q_initializations = [-1.0, 0.0, 1.0]
 base_path = f"{environment}/data/"
