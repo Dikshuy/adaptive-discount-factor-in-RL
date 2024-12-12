@@ -139,7 +139,7 @@ def plot_separate_gamma_results(environments, init, gamma_values, alpha, plot_di
         
 environments = ["THE_BOSS"]
 gammas = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
-alphas = [0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1]
+alphas = [0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0]
 q_inits = [0.0, 1.0, 5.0, 10.0]
 save_dir_na = "results/q_learning/non_adaptive"
 save_dir_a = "results/q_learning/adaptive"
