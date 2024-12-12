@@ -25,7 +25,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, label="", linestyle
     error = 1.96 * error / np.sqrt(data.shape[0])
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
-def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps):
+def plot_separate_gamma_results(environments, init, gamma_values, alpha, plot_dir, eval_steps):
     colorblind_colors = sns.color_palette("colorblind")
     linestyles = ["-"]
     plt.rc("axes", prop_cycle=cycler("color", colorblind_colors))
@@ -33,7 +33,7 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
 
     for _, env_name in enumerate(environments):
         fig, axs = plt.subplots(1, 2, figsize=(12, 8))
-        fig.suptitle(f"{env_name}", fontsize=14)
+        fig.suptitle(f"{env_name}, alpha={alpha}, init={init}", fontsize=14)
 
         env_dir_na = os.path.join(save_dir_na, env_name)
         env_dir_a = os.path.join(save_dir_a, env_name)
@@ -41,7 +41,7 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
 
         os.makedirs(env_plot_dir, exist_ok=True)
 
-        gamma_results_path = os.path.join(env_dir_a, f"gamma_0.1", f"Q_init_{Q_init}", f"0.1_results.pkl")
+        gamma_results_path = os.path.join(env_dir_a, f"gamma_0.1", f"Q_init_{init}", f"alpha_{alpha}", f"0.1_results.pkl")
 
         if not os.path.exists(gamma_results_path):
             print(f"Results file not found: {gamma_results_path}")
@@ -79,7 +79,7 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
         )
 
         for gamma_idx, gamma in enumerate(gamma_values):
-            gamma_results_path = os.path.join(env_dir_na, f"gamma_{gamma}", f"Q_init_{Q_init}", f"{gamma}_results.pkl")
+            gamma_results_path = os.path.join(env_dir_na, f"gamma_{gamma}", f"Q_init_{init}", f"alpha_{alpha}",f"{gamma}_results.pkl")
 
             if not os.path.exists(gamma_results_path):
                 print(f"Results file not found: {gamma_results_path}")
@@ -131,18 +131,22 @@ def plot_separate_gamma_results(environments, gamma_values, plot_dir, eval_steps
         axs[1].grid(True, which="both", linestyle="--", linewidth=0.5)
         axs[1].minorticks_on()
 
-        output_path = os.path.join(env_plot_dir, f"{env_name}_{Q_init}.png")
+        output_path = os.path.join(env_plot_dir, f"{env_name}_Q_{init}_α_{alpha}.png")
         plt.tight_layout()
         plt.savefig(output_path, dpi=300)
         print(f"Saved plot for {env_name}: {output_path}")
         plt.close(fig)
 
-environments = ["Straight-20-v0", "Empty-2x2-v0", "Empty-3x3-v0", "Empty-Loop-3x3-v0", "Empty-10x10-v0", "Empty-Distract-6x6-v0", "Penalty-3x3-v0", "Quicksand-4x4-v0", "Quicksand-Distract-4x4-v0", "TwoRoom-Quicksand-3x5-v0", "Corridor-3x4-v0", "Full-4x5-v0", "TwoRoom-Distract-Middle-2x11-v0", "Barrier-5x5-v0", "RiverSwim-6-v0", "CliffWalk-4x12-v0", "DangerMaze-6x6-v0"]
+# environments = ["Straight-20-v0", "Empty-2x2-v0", "Empty-3x3-v0", "Empty-Loop-3x3-v0", "Empty-10x10-v0", "Empty-Distract-6x6-v0", "Penalty-3x3-v0", "Quicksand-4x4-v0", "Quicksand-Distract-4x4-v0", "TwoRoom-Quicksand-3x5-v0", "Corridor-3x4-v0", "Full-4x5-v0", "TwoRoom-Distract-Middle-2x11-v0", "Barrier-5x5-v0", "RiverSwim-6-v0", "CliffWalk-4x12-v0", "DangerMaze-6x6-v0"]
+environments = ["Empty-10x10-v0", "Empty-Distract-6x6-v0", "Penalty-3x3-v0", "Quicksand-4x4-v0", "Quicksand-Distract-4x4-v0", "TwoRoom-Quicksand-3x5-v0", "Full-4x5-v0", "TwoRoom-Distract-Middle-2x11-v0", "Barrier-5x5-v0"]
 gammas = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
-save_dir_na = "q_learning_new/non_adaptive/Gym-Gridworlds"
-save_dir_a = "q_learning_new/adaptive/Gym-Gridworlds"
+alphas = [0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1]
+q_inits = [0.0, 1.0, 5.0, 10.0]
+save_dir_na = "results2/q_learning/non_adaptive/Gym-Gridworlds"
+save_dir_a = "results2/q_learning/adaptive/Gym-Gridworlds"
 plot_dir = "plots/q_learning_new"
-Q_init = 10.0
 eval_steps = 100
 
-plot_separate_gamma_results(environments, gammas, plot_dir, eval_steps)
+for alpha in alphas:
+    for init in q_inits:
+        plot_separate_gamma_results(environments, init, gammas, alpha, plot_dir, eval_steps)
