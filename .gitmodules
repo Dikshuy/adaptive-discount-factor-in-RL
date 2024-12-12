@@ -1,3 +1,0 @@
-[submodule "gym_gridworlds"]
-	path = gym_gridworlds
-	url = https://github.com/sparisi/gym_gridworlds.git
