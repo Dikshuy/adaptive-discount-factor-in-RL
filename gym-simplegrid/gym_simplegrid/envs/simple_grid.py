@@ -251,9 +251,9 @@ class SimpleGridEnv(Env):
         elif not self.is_free(x, y):
             return 0.0  # Wall
         if (x, y) == self.goal_xy:
-            return 10.0
+            return 1.0
         elif (self.obstacles[x, y] == self.LAVA):  # Check for lava
-            return -1.0
+            return -0.1
         else:
             return 0.0
 

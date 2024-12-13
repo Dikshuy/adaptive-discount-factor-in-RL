@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Q_INIT_VALUES="0 1 5 10"
-ALPHA_VALUES="0.001 0.0025 0.005 0.0075 0.01 0.025 0.05 0.075 0.1 0.25 0.5 0.75 1"
+ALPHA_VALUES="0.1 0.5 1"
 
 BASE_SCRIPT="job_simplegrid.sh"
 
@@ -20,7 +20,8 @@ for INIT in $Q_INIT_VALUES; do
 
         echo "Generate job file: $JOB_FILE"
 
-        sbatch $JOB_FILE
+        # sbatch $JOB_FILE
+        bash $JOB_FILE
 
         echo "submitted job: $JOB_FILE"
 

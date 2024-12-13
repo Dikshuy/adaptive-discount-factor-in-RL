@@ -19,7 +19,7 @@ def eps_greedy_action(env, Q, s, eps):
         action = np.random.choice(np.where(Q[s] == np.max(Q[s]))[0])
     return action
 
-def expected_return(env, Q, gamma, episodes=1):
+def expected_return(env, Q, gamma, episodes=10):
     G = np.zeros(episodes)
     episode_steps = np.zeros(episodes)
     for e in range(episodes):
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     parser.add_argument("--eval_steps", type=int, default=100, help="Steps between evaluations")
     parser.add_argument("--n_seeds", type=int, default=10, help="Number of random seeds")
     parser.add_argument("--save_dir", type=str, default=".", help="Directory to save plots")
+    parser.add_argument("--stochasticity", type=float, default=0.0, help="stochasticity")
     args = parser.parse_args()
 
     gamma_env = 0.99
@@ -127,8 +128,8 @@ if __name__ == "__main__":
 
     for env_name in args.environments:
         cost_map = load_map(env_name)
-        env = gym.make("SimpleGrid-v0", obstacle_map=cost_map)
-        env_eval = gym.make("SimpleGrid-v0", obstacle_map=cost_map)
+        env = gym.make("SimpleGrid-v0", obstacle_map=cost_map, stochasticity=args.stochasticity)
+        env_eval = gym.make("SimpleGrid-v0", obstacle_map=cost_map,stochasticity = args.stochasticity)
         length = len(cost_map)
         width = len(cost_map[0])
 
@@ -206,6 +207,7 @@ if __name__ == "__main__":
                         f"gamma_{gamma}",
                         f"Q_init_{init_value}",
                         f"alpha_{alpha}"
+                        f"stochasticity_{args.stochasticity}"
                     )
                     os.makedirs(sub_dir, exist_ok=True)
 
