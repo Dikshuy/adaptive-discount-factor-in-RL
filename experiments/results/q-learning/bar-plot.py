@@ -23,6 +23,7 @@ def bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, 
     sns.set_style(style="white")
     adaptive_label = "adaptive_gamma"
     fixed_label = "gamma=0.99"
+    fixed_label2 = "gamma=0.5"
 
     for alpha in alphas:
         plot_dir = os.path.join(base_plot_dir, f"alpha_{alpha}")
@@ -33,6 +34,8 @@ def bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, 
             adaptive_cis = []
             fixed_means = []
             fixed_cis = []
+            fixed_means2 = []
+            fixed_cis2 = []
             labels = []
 
             for init in q_inits:
@@ -42,25 +45,33 @@ def bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, 
                 fixed_path = os.path.join(
                     save_dir_na, f"{env_name}", f"gamma_0.99", f"Q_init_{init}", f"alpha_{alpha}", "0.99_results.pkl"
                 )
+                fixed_path2 = os.path.join(
+                    save_dir_na, f"{env_name}", f"gamma_0.5", f"Q_init_{init}", f"alpha_{alpha}", "0.5_results.pkl"
+                )
 
                 adaptive_results = load_results(adaptive_path)
                 fixed_results = load_results(fixed_path)
+                fixed_results2 = load_results(fixed_path2)
 
                 adaptive_mean, adaptive_ci = extract_performance(adaptive_results)
                 fixed_mean, fixed_ci = extract_performance(fixed_results)
+                fixed_mean2, fixed_ci2 = extract_performance(fixed_results2)
 
                 adaptive_means.append(adaptive_mean)
                 adaptive_cis.append(adaptive_ci)
                 fixed_means.append(fixed_mean)
                 fixed_cis.append(fixed_ci)
+                fixed_means2.append(fixed_mean2)
+                fixed_cis2.append(fixed_ci2)
                 labels.append(f"Q_init={init}")
 
             x = np.arange(len(q_inits))
             width = 0.35
 
             fig, ax = plt.subplots(figsize=(10, 6))
-            rects1 = ax.bar(x - width / 2, adaptive_means, width, label=adaptive_label, color="steelblue", yerr=adaptive_cis, capsize=5)
-            rects2 = ax.bar(x + width / 2, fixed_means, width, label=fixed_label, color="orange", yerr=fixed_cis, capsize=5)
+            rects1 = ax.bar(x - width / 3, adaptive_means, width, label=adaptive_label, color="steelblue", yerr=adaptive_cis, capsize=5)
+            rects2 = ax.bar(x + width, fixed_means, width, label=fixed_label, color="orange", yerr=fixed_cis, capsize=5)
+            rects3 = ax.bar(x + width / 3, fixed_means2, width, label=fixed_label2, color="green", yerr=fixed_cis2, capsize=5)
 
             ax.set_xlabel("Q-Value Initialization")
             ax.set_ylabel("Mean Expected Return")
@@ -84,6 +95,8 @@ def bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, 
 
             annotate_bars(rects1)
             annotate_bars(rects2)
+            annotate_bars(rects3)
+
 
             output_path = os.path.join(plot_dir, f"{env_name}.png")
             plt.tight_layout()
