@@ -92,7 +92,7 @@ def bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, 
             plt.close(fig)
 
 environments = ["Empty-10x10-v0", "Empty-Distract-6x6-v0", "Penalty-3x3-v0", "Quicksand-4x4-v0", "Quicksand-Distract-4x4-v0", "TwoRoom-Quicksand-3x5-v0", "Full-4x5-v0", "TwoRoom-Distract-Middle-2x11-v0", "Barrier-5x5-v0"]
-q_inits = [0.0, 1.0, 5.0, 10.0]
+q_inits = [0.0, 5.0, 10.0]
 alphas = [0.5]
 save_dir_na = "results2/q_learning/non_adaptive/Gym-Gridworlds"
 save_dir_a = "results2/q_learning/adaptive_0.5/Gym-Gridworlds"
