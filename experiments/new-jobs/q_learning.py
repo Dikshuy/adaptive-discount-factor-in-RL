@@ -206,7 +206,7 @@ if __name__ == "__main__":
                         output_dirs[env_name],
                         f"gamma_{gamma}",
                         f"Q_init_{init_value}",
-                        f"alpha_{alpha}"
+                        f"alpha_{alpha}",
                         f"stochasticity_{args.stochasticity}"
                     )
                     os.makedirs(sub_dir, exist_ok=True)
