@@ -37,7 +37,7 @@ def bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, 
 
             for init in q_inits:
                 adaptive_path = os.path.join(
-                    save_dir_a, f"{env_name}", f"gamma_0.1", f"Q_init_{init}", f"alpha_{alpha}", "0.1_results.pkl"
+                    save_dir_a, f"{env_name}", f"gamma_0.5", f"Q_init_{init}", f"alpha_{alpha}", "0.5_results.pkl"
                 )
                 fixed_path = os.path.join(
                     save_dir_na, f"{env_name}", f"gamma_0.99", f"Q_init_{init}", f"alpha_{alpha}", "0.99_results.pkl"
@@ -92,10 +92,10 @@ def bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, 
             plt.close(fig)
 
 environments = ["Empty-10x10-v0", "Empty-Distract-6x6-v0", "Penalty-3x3-v0", "Quicksand-4x4-v0", "Quicksand-Distract-4x4-v0", "TwoRoom-Quicksand-3x5-v0", "Full-4x5-v0", "TwoRoom-Distract-Middle-2x11-v0", "Barrier-5x5-v0"]
-q_inits = [0.0, 5.0, 10.0]
-alphas = [0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0]
+q_inits = [0.0, 1.0, 5.0, 10.0]
+alphas = [0.5]
 save_dir_na = "results2/q_learning/non_adaptive/Gym-Gridworlds"
-save_dir_a = "results2/q_learning/adaptive/Gym-Gridworlds"
+save_dir_a = "results2/q_learning/adaptive_0.5/Gym-Gridworlds"
 base_plot_dir = "plots/bar_plots"
 
 bar_plot_comparison(environments, q_inits, alphas, save_dir_na, save_dir_a, base_plot_dir)
