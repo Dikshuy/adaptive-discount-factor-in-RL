@@ -113,7 +113,7 @@ if __name__ == "__main__":
     gamma_env = 0.99
 
     if args.adaptive_gamma:
-        args.gamma_values = [0.1]
+        args.gamma_values = [0.5]
 
     linestyles = ["-", "--", "-.", ":"]
     colorblind_colors = sns.color_palette("colorblind", len(args.gamma_values))
