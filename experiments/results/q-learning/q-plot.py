@@ -25,7 +25,7 @@ def error_shade_plot(ax, data, stepsize, smoothing_window=1, label="", linestyle
     error = 1.96 * error / np.sqrt(data.shape[0])
     ax.fill_between(x, y - error, y + error, alpha=0.2, linewidth=0.0, color=line.get_color())
 
-def plot_separate_gamma_results(environments, init, gamma_values, alpha, plot_dir, eval_steps):
+def plot_separate_gamma_results(environments, init, gamma_values, alpha, stochasticity, plot_dir, eval_steps):
     colorblind_colors = sns.color_palette("colorblind")
     linestyles = ["-"]
     plt.rc("axes", prop_cycle=cycler("color", colorblind_colors))
@@ -41,7 +41,7 @@ def plot_separate_gamma_results(environments, init, gamma_values, alpha, plot_di
 
         os.makedirs(env_plot_dir, exist_ok=True)
 
-        gamma_results_path = os.path.join(env_dir_a, f"gamma_0.1", f"Q_init_{init}", f"alpha_{alpha}", f"0.1_results.pkl")
+        gamma_results_path = os.path.join(env_dir_a, f"gamma_0.5", f"Q_init_{init}", f"alpha_{alpha}", f"stochasticity_{stochasticity}", f"0.5_results.pkl")
 
         if not os.path.exists(gamma_results_path):
             print(f"Results file not found: {gamma_results_path}")
@@ -79,7 +79,7 @@ def plot_separate_gamma_results(environments, init, gamma_values, alpha, plot_di
         )
 
         for gamma_idx, gamma in enumerate(gamma_values):
-            gamma_results_path = os.path.join(env_dir_na, f"gamma_{gamma}", f"Q_init_{init}", f"alpha_{alpha}", f"{gamma}_results.pkl")
+            gamma_results_path = os.path.join(env_dir_na, f"gamma_{gamma}", f"Q_init_{init}", f"alpha_{alpha}", f"stochasticity_{stochasticity}", f"{gamma}_results.pkl")
 
             if not os.path.exists(gamma_results_path):
                 print(f"Results file not found: {gamma_results_path}")
@@ -131,7 +131,7 @@ def plot_separate_gamma_results(environments, init, gamma_values, alpha, plot_di
         axs[1].grid(True, which="both", linestyle="--", linewidth=0.5)
         axs[1].minorticks_on()
 
-        output_path = os.path.join(env_plot_dir, f"{env_name}_Q_{init}_α_{alpha}.png")
+        output_path = os.path.join(env_plot_dir, f"{env_name}_Q_{init}_α_{alpha}_stochasticity_{stochasticity}.png")
         plt.tight_layout()
         plt.savefig(output_path, dpi=300)
         print(f"Saved plot for {env_name}: {output_path}")
@@ -139,8 +139,9 @@ def plot_separate_gamma_results(environments, init, gamma_values, alpha, plot_di
         
 environments = ["THE_BOSS"]
 gammas = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
-alphas = [0.001, 0.0025, 0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0]
+alphas = [0.1, 0.5, 1.0]
 q_inits = [0.0, 1.0, 5.0, 10.0]
+stochasticity = 0.5
 save_dir_na = "results/q_learning/non_adaptive"
 save_dir_a = "results/q_learning/adaptive"
 plot_dir = "plots/q_learning"
@@ -148,4 +149,4 @@ eval_steps = 100
 
 for alpha in alphas:
     for init in q_inits:
-        plot_separate_gamma_results(environments, init, gammas, alpha, plot_dir, eval_steps)
+        plot_separate_gamma_results(environments, init, gammas, alpha, stochasticity, plot_dir, eval_steps)
