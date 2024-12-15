@@ -16,20 +16,21 @@ for INIT in $Q_INIT_VALUES; do
             
             sed -e "s/Q_INIT=0/Q_INIT=$INIT/" \
                 -e "s/ALPHA=0.1/ALPHA=$ALPHA/" \
-                -e "s/STOCHS=0.1/STOCHS=$STOCHS/" \
+                -e "s/STOCHS=0.0/STOCHS=$STOCHS/" \
                 $BASE_SCRIPT > $JOB_FILE
 
             chmod +x ${JOB_FILE}
 
             echo "Generate job file: $JOB_FILE"
 
-            # sbatch $JOB_FILE
-            bash $JOB_FILE
+            sbatch $JOB_FILE
+            # bash $JOB_FILE
 
             echo "submitted job: $JOB_FILE"
 
             echo "================================="
-  done
+        done
+    done
 done
 
 echo "Job scripts created in ${JOB_DIR}"
