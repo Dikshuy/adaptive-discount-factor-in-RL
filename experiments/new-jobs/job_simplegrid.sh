@@ -20,7 +20,7 @@ python q_learning.py \
     --max_steps 60000 \
     --eval_steps 100 \
     --n_seeds 50 \
-    --stochasticity 0.0 \
+    --stochasticity 0.5 \
     --save_dir "results/q_learning/adaptive"
 
 python q_learning.py \
@@ -31,5 +31,5 @@ python q_learning.py \
     --max_steps 60000 \
     --eval_steps 100 \
     --n_seeds 50 \
-    --stochasticity 0.0 \
+    --stochasticity 0.5 \
     --save_dir "results/q_learning/non_adaptive/"
