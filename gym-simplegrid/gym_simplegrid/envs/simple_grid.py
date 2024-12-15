@@ -138,7 +138,7 @@ class SimpleGridEnv(Env):
         aux_reward += self.agent_action == 3
         
         # Compute the reward
-        self.reward = self.get_reward(target_row, target_col) + (aux_reward * 0.0001)
+        self.reward = self.get_reward(target_row, target_col) + (aux_reward * 0.1)
         
         # Check if the move is valid
         if self.is_in_bounds(target_row, target_col) and self.is_free(target_row, target_col):
@@ -256,7 +256,7 @@ class SimpleGridEnv(Env):
         if (x, y) == self.goal_xy:
             return 10.0
         elif (self.obstacles[x, y] == self.LAVA):  # Check for lava
-            return -1
+            return -1.0
         else:
             return 0.0
 
