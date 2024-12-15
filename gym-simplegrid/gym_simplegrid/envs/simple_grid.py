@@ -417,3 +417,4 @@ class SimpleGridEnv(Env):
         """
         plt.close(self.fig)
         sys.exit()
+        
