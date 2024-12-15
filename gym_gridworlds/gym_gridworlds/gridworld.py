@@ -89,7 +89,7 @@ GRIDS = {
         [EMPTY, QCKSND, GOOD_SMALL, EMPTY],
         [EMPTY, EMPTY, EMPTY, EMPTY],
     ],
-    "5x5_full": [
+    "4x5_full": [
         [EMPTY, EMPTY, GOOD_SMALL, BAD, GOOD],
         [EMPTY, EMPTY, BAD, EMPTY, EMPTY],
         [RIGHT, EMPTY, QCKSND, GOOD_SMALL, EMPTY],
@@ -174,6 +174,8 @@ class Gridworld(gym.Env):
     If the agent is in a "quicksand" tile, any action will fail with 90% probability.
 
     ## Observation Space
+
+    #### Default
     The observation is discrete in the range `{0, n_rows * n_cols - 1}`.
     Each integer denotes the current location of the agent.
     For example, in a 3x3 grid the states are
@@ -182,10 +184,31 @@ class Gridworld(gym.Env):
      3 4 5
      6 7 8
 
-    It is also possible to learn from pixel observations.
-    Pixel observations can be made partial by passing 'view_radius'. For example,
-    if 'view_radius=1' the rendering will show the content of only the tiles
+    #### Coordinate
+    If you prefer to observe the `(row, col)` index of the current position of the
+    agent, make the environment with the `coordinate_observation=True` argument.
+
+    #### RGB
+    To use classic RGB pixel observations, make the environment with
+    `render_mode="rgb_array"`.
+
+    #### Partial RGB
+    Pixel observations can be made partial by passing `view_radius`. For example,
+    if `view_radius=1` the rendering will show the content of only the tiles
     around the agent, while all other tiles will be filled with white noise.
+
+    #### Binary
+    Finally, you can also use binary observations by making the environment with
+    the `render_mode="binary"` argument. Observations will be a matrix of 0s
+    and one 1 corresponding to the position of the agent.
+
+    #### Noisy Observations
+    All types of observations can be made noisy by making the environment with
+    `observation_noise=0.2` (or any other float in `[0, 1)`).
+    For default, coordinate, and binary observations: the float represents the
+    probability that the position observed by the agent will be random.
+    For RGB observations: the float represents the probability that a pixel will
+    be white noise.
 
     ## Starting State
     The episode starts with the agent at the top-left tile.
@@ -193,10 +216,10 @@ class Gridworld(gym.Env):
     ## Transition
     By default, the transition is deterministic except in quicksand tiles,
     where any action fails with 90% probability (the agent does not move).
-    Transition can be made stochastic everywhere by passing 'random_action_prob'.
+    Transition can be made stochastic everywhere by passing `random_action_prob`.
     This is the probability that the action will be random.
-    For example, if 'random_action_prob=0.1' there is a 10% chance that the agent
-    will do a random action instead of doing the one passed to 'self.step(action)'.
+    For example, if `random_action_prob=0.1` there is a 10% chance that the agent
+    will do a random action instead of doing the one passed to `self.step(action)`.
 
     ## Rewards
     - Doing STAY at the goal: +1
@@ -206,8 +229,14 @@ class Gridworld(gym.Env):
     - Walking on a pit tile: -100
     - Otherwise: 0
 
-    White noise can be added to all rewards by passing 'reward_noise_std',
-    or only to nonzero rewards with 'nonzero_reward_noise_std'.
+    #### Noisy Rewards
+    White noise can be added to all rewards by passing `reward_noise_std`,
+    or only to nonzero rewards with `nonzero_reward_noise_std`.
+
+    #### Auxiliary Rewards
+    An auxiliary negative reward based on the Manhattan distance to the closest
+    goal can be added by passing `distance_reward=True`. The distance is scaled
+    according to the size of the grid.
 
     ## Episode End
     By default, an episode ends if any of the following happens:
@@ -241,21 +270,38 @@ class Gridworld(gym.Env):
     def __init__(
         self,
         grid: str,
+        distance_reward: Optional[bool] = False,
+        coordinate_observation: Optional[bool] = False,
         render_mode: Optional[str] = None,
         random_action_prob: Optional[float] = 0.0,
         reward_noise_std: Optional[float] = 0.0,
         nonzero_reward_noise_std: Optional[float] = 0.0,
+        observation_noise: Optional[float] = 0.0,
         view_radius: Optional[int] = 99999,
         **kwargs,
     ):
         self.grid_key = grid
         self.grid = np.asarray(GRIDS[self.grid_key])
+        self.coordinate_observation = coordinate_observation
         self.random_action_prob = random_action_prob
         self.reward_noise_std = reward_noise_std
         self.nonzero_reward_noise_std = nonzero_reward_noise_std
+        assert (
+            observation_noise < 1.0 and observation_noise >= 0.0
+        ), "observation_noise must be in [0.0, 1.0)"
+        self.observation_noise = observation_noise
+        self.distance_reward = distance_reward
 
         self.n_rows, self.n_cols = self.grid.shape
-        self.observation_space = gym.spaces.Discrete(self.n_cols * self.n_rows)
+        if self.coordinate_observation:
+            self.observation_space = gym.spaces.Box(
+                low=np.array([0.0, 0.0]),
+                high=np.array([self.n_rows - 1, self.n_cols - 1]),
+                dtype=np.float32,
+            )
+        else:
+            self.observation_space = gym.spaces.Discrete(self.n_cols * self.n_rows)
+
         self.action_space = gym.spaces.Discrete(5)
         self.agent_pos = None
         self.last_action = None
@@ -274,10 +320,23 @@ class Gridworld(gym.Env):
         )  # fmt: skip
 
     def set_state(self, state):
-        self.agent_pos = np.unravel_index(state, (self.n_rows, self.n_cols))
+        if self.coordinate_observation:
+            self.agent_pos = tuple(np.array(state).ravel())
+        else:
+            self.agent_pos = np.unravel_index(state, (self.n_rows, self.n_cols))
 
     def get_state(self):
-        return np.ravel_multi_index(self.agent_pos, (self.n_rows, self.n_cols))
+        pos = self.agent_pos
+        if self.observation_noise > 0.0:
+            if self.np_random.random() < self.observation_noise:
+                pos = (
+                    self.np_random.integers(0, self.n_rows),
+                    self.np_random.integers(0, self.n_cols),
+                )  # note that the random position can be also a wall or a pit
+        if self.coordinate_observation:
+            return np.array(pos, dtype=np.float32)
+        else:
+            return np.ravel_multi_index(pos, (self.n_rows, self.n_cols))
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
@@ -316,6 +375,12 @@ class Gridworld(gym.Env):
             reward += self.np_random.normal() * self.reward_noise_std
         if reward != 0.0 and self.nonzero_reward_noise_std > 0.0:
             reward += self.np_random.normal() * self.nonzero_reward_noise_std
+
+        if self.distance_reward:
+            closest_goal = np.abs(
+                np.argwhere(self.grid == GOOD) - self.agent_pos
+            ).sum(1).min()
+            reward -= closest_goal / (self.n_rows * self.n_cols)
 
         if self.grid[self.agent_pos] == QCKSND and self.np_random.random() > 0.1:
             pass  # fail to move in quicksand
@@ -496,6 +561,23 @@ class Gridworld(gym.Env):
                     )
                     pygame.draw.polygon(self.window_surface, GRAY, arr_pos, 0)
 
+                # some pixels are white noise
+                if self.observation_noise > 0.0:
+                    grain = 5
+                    for i in range(grain):
+                        for j in range(grain):
+                            if self.np_random.random() < self.observation_noise:
+                                rect = pygame.Rect(
+                                    (
+                                        pos[0] + i / grain * t_size[0],
+                                        pos[1] + j / grain * t_size[1],
+                                    ),
+                                    tuple(cs / grain for cs in t_size),
+                                )
+                                rnd_color = self.np_random.random(3) * 255
+                                rnd_color = [(rnd_color * (0.2989, 0.5870, 0.1140)).sum()] * 3  # grayscale
+                                pygame.draw.rect(self.window_surface, rnd_color, rect)
+
             # draw last action
             if self.last_pos is not None:
                 x = self.last_pos[1]
@@ -569,13 +651,12 @@ class GridworldRandomStart(Gridworld):
 
     def _reset(self, seed: int = None, **kwargs):
         Gridworld._reset(self, seed=seed, **kwargs)
-        while True:
-            self.agent_pos = (
-                self.np_random.integers(0, self.n_rows),
-                self.np_random.integers(0, self.n_cols),
-            )
-            if self.grid[self.agent_pos] not in [WALL, PIT]:
-                break
+        allowed_tiles = np.argwhere(
+            np.logical_and(self.grid != WALL, self.grid != PIT),
+        )
+        n_allowed = allowed_tiles.shape[0]
+        assert n_allowed != 0, "there is no tile where the agent can spawn"
+        self.agent_pos = tuple(allowed_tiles[self.np_random.integers(n_allowed)])
         return self.get_state(), {}
 
 
@@ -605,9 +686,9 @@ class RiverSwim(Gridworld):
         return self.get_state(), {}
 
     def _step(self, action: int):
-        state = self.get_state()
+        state = np.ravel_multi_index(self.agent_pos, (self.n_rows, self.n_cols))
         first = 0
-        last = self.observation_space.n - 1
+        last = self.n_rows * self.n_cols - 1
 
         # Map action to match Gridworld notation
         if action == 0:
