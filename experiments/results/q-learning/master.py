@@ -18,13 +18,14 @@ def extract_performance(results):
 
 def horizontal_bar_plot(environments, save_dir_na, save_dir_a, base_plot_dir):
     sns.set_style(style="white")
-    adaptive_label = "$γ_a$"
-    fixed_label = "$γ_e$"
-    q_init = 0.0
+    adaptive_label = "Adaptive γ"
+    fixed_label = "Fixed γ = 0.99"
+    q_init = 10.0
     alpha = 0.5
 
     plot_dir = os.path.join(base_plot_dir, "horizontal_bar_plot")
     os.makedirs(plot_dir, exist_ok=True)
+    plt.rcParams.update({'font.size': 14})
 
     adaptive_means = []
     fixed_means = []
@@ -61,12 +62,12 @@ def horizontal_bar_plot(environments, save_dir_na, save_dir_a, base_plot_dir):
     ax.barh(y + width / 2, fixed_means, height=width, color="orange", label=fixed_label)
 
     ax.set_yticks(y)
-    ax.set_yticklabels(labels, fontfamily="monospace",fontsize=14)
-    ax.set_xlabel("Mean Expected Return", fontsize=10)
+    ax.set_yticklabels(labels, fontfamily="monospace")
+    ax.set_xlabel("Mean Expected Return")
     ax.set_xlim(-1,1)
     ax.legend(prop={'size': 14})
 
-    output_path = os.path.join(plot_dir, f"{q_init}.png")
+    output_path = os.path.join(plot_dir, f"{q_init}_returns.png")
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
     print(f"Saved horizontal bar plot: {output_path}")
@@ -75,7 +76,6 @@ environments = [
     "Empty-10x10-v0",
     "Empty-Distract-6x6-v0",
     "Penalty-3x3-v0",
-    "Quicksand-4x4-v0",
     "Quicksand-Distract-4x4-v0",
     "TwoRoom-Quicksand-3x5-v0",
     "Full-4x5-v0",
